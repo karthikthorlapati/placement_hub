@@ -59,6 +59,7 @@ nav a {
   padding: 50px 30px;
 }
 
+
 .card {
   background: white;
   border: 1px solid #ddd;
@@ -162,6 +163,32 @@ css/* Auth Pages */
 .error-msg {
   background: #ffe0e0;
   color: #e74c3c;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Select Dropdown */
+.form-group select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 15px;
+  outline: none;
+  background: white;
+}
+
+.form-group select:focus {
+  border-color: #3498db;
+}
+
+/* Success Message */
+.success-msg {
+  background: #d4edda;
+  color: #28a745;
   padding: 10px;
   border-radius: 5px;
   margin-bottom: 15px;
