@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coordinator Dashboard - Placement Hub</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <h1>🎓 Placement Hub</h1>
+    <div class="nav-right">
+      <span id="coordinatorName">Welcome!</span>
+      <a href="../login.html" onclick="logout()" class="btn-logout">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-container">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <ul>
+        <li><a href="dashboard.html" class="active">🏠 Dashboard</a></li>
+        <li><a href="students.html">👨‍🎓 Students</a></li>
+        <li><a href="companies.html">🏢 Companies</a></li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <h2>Coordinator Dashboard</h2>
+
+      <!-- Stats Cards -->
+      <div class="stats-container">
+        <div class="stat-card blue">
+          <h3 id="totalStudents">0</h3>
+          <p>Total Students</p>
+        </div>
+        <div class="stat-card green">
+          <h3 id="totalCompanies">0</h3>
+          <p>Total Companies</p>
+        </div>
+        <div class="stat-card orange">
+          <h3 id="totalApplications">0</h3>
+          <p>Total Applications</p>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="section">
+        <h3>Quick Actions</h3>
+        <div class="quick-actions">
+          <a href="companies.html" class="action-btn">➕ Add New Company</a>
+          <a href="students.html" class="action-btn">👥 View All Students</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/coordinator-dashboard.js"></script>
+
+</body>
+</html>
