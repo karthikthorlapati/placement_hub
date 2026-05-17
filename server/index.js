@@ -5,6 +5,8 @@ require('dotenv').config()
 
 const connectDB = require('./config/db')
 const authRoutes = require('./routes/auth')
+const studentRoutes = require('./routes/student')
+const coordinatorRoutes = require('./routes/coordinator')
 
 const app = express()
 app.use(express.json())
@@ -15,6 +17,8 @@ connectDB()
 
 // Routes
 app.use('/api/auth', authRoutes)
+app.use('/api/student', studentRoutes)
+app.use('/api/coordinator', coordinatorRoutes)
 
 // Test route
 app.get('/', (req, res) => {
