@@ -1,3 +1,30 @@
+// Show or hide fields based on role selection
+document.getElementById('role').addEventListener('change', function () {
+  const role = this.value
+
+  const departmentField = document.getElementById('departmentField')
+  const rollField = document.getElementById('rollField')
+  const phoneField = document.getElementById('phoneField')
+
+  if (role === 'student') {
+    // Show all fields
+    departmentField.style.display = 'block'
+    rollField.style.display = 'block'
+    phoneField.style.display = 'block'
+  } else if (role === 'coordinator') {
+    // Show only department
+    departmentField.style.display = 'block'
+    rollField.style.display = 'none'
+    phoneField.style.display = 'none'
+  } else {
+    // Hide all
+    departmentField.style.display = 'none'
+    rollField.style.display = 'none'
+    phoneField.style.display = 'none'
+  }
+})
+
+// Handle form submission
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault()
 
@@ -15,6 +42,13 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   // Hide previous messages
   errorMsg.style.display = 'none'
   successMsg.style.display = 'none'
+
+  // Basic validation
+  if (!role) {
+    errorMsg.style.display = 'block'
+    errorMsg.innerText = 'Please select a role!'
+    return
+  }
 
   try {
     const response = await fetch(`${API_URL}/auth/register`, {
