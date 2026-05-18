@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Companies - Placement Hub</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <h1>🎓 Placement Hub</h1>
+    <div class="nav-right">
+      <span id="studentName">Welcome!</span>
+      <a href="../login.html" onclick="logout()" class="btn-logout">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-container">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <ul>
+        <li><a href="dashboard.html">🏠 Dashboard</a></li>
+        <li><a href="companies.html" class="active">🏢 Companies</a></li>
+        <li><a href="applications.html">📋 My Applications</a></li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <h2>Available Companies</h2>
+
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search companies..."
+          onkeyup="searchCompanies()"
+        />
+      </div>
+
+      <!-- Companies List -->
+      <div id="companiesList">
+        <p>Loading companies...</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/companies.js"></script>
+
+</body>
+</html>
