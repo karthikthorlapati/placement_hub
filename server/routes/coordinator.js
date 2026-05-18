@@ -48,6 +48,36 @@ router.get('/companies', auth, async (req, res) => {
   }
 })
 
+// ✅ Update company status
+router.put('/companies/:companyId', auth, async (req, res) => {
+  try {
+    const company = await Company.findByIdAndUpdate(
+      req.params.companyId,
+      { status: req.body.status },
+      { new: true }
+    )
+
+    if (!company) {
+      return res.status(404).json({ message: 'Company not found' })
+    }
+
+    res.json({ message: 'Company updated successfully!', company })
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+})
+
+// ✅ Delete company
+router.delete('/companies/:companyId', auth, async (req, res) => {
+  try {
+    await Company.findByIdAndDelete(req.params.companyId)
+    res.json({ message: 'Company deleted successfully!' })
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+})
+
 // ✅ Get all applications for a company
 router.get('/applications/:companyId', auth, async (req, res) => {
   try {
@@ -56,6 +86,26 @@ router.get('/applications/:companyId', auth, async (req, res) => {
     }).populate('student', '-password')
 
     res.json(applications)
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+})
+
+// ✅ Update application status
+router.put('/applications/:applicationId', auth, async (req, res) => {
+  try {
+    const application = await Application.findByIdAndUpdate(
+      req.params.applicationId,
+      { status: req.body.status },
+      { new: true }
+    )
+
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' })
+    }
+
+    res.json({ message: 'Application status updated!', application })
+
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message })
   }
@@ -73,6 +123,7 @@ router.get('/stats', auth, async (req, res) => {
       totalCompanies,
       totalApplications
     })
+
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message })
   }

@@ -11,8 +11,9 @@ router.get('/companies', auth, async (req, res) => {
     const companies = await Company.find({ status: 'active' })
     res.json(companies)
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message })
-  }
+  console.log('Apply Error:', error)
+  res.status(500).json({ message: 'Server error', error: error.message })
+}
 })
 
 // ✅ Apply for a company
@@ -60,6 +61,21 @@ router.get('/profile', auth, async (req, res) => {
   try {
     const student = await User.findById(req.user.userId).select('-password')
     res.json(student)
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+})
+
+// ✅ Check if already applied
+router.get('/check-application/:companyId', auth, async (req, res) => {
+  try {
+    const application = await Application.findOne({
+      student: req.user.userId,
+      company: req.params.companyId
+    })
+
+    res.json({ applied: !!application })
+
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message })
   }
