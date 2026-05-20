@@ -11,7 +11,7 @@ if (user.role !== 'coordinator') {
 }
 
 // Show coordinator name
-document.getElementById('coordinatorName').innerText = Hello, `${user.name}!`
+document.getElementById('coordinatorName').innerText = `Hello, ${user.name}!`
 
 // Store all students globally for search
 let allStudents = []
@@ -19,15 +19,16 @@ let allStudents = []
 // Load all students
 async function loadStudents() {
   try {
-    const res = await fetch(`${API_URL}`/coordinator/students, {
-      headers: { 'Authorization': Bearer `${token}` }
+    const res = await fetch(`${API_URL}/coordinator/students`, {
+      headers: { 'Authorization': `Bearer ${token}` }
     })
 
     allStudents = await res.json()
     displayStudents(allStudents)
 
   } catch (error) {
-    document.getElementById('studentsList').innerHTML =
+      console.log(error)
+      document.getElementById('studentsList').innerHTML =
       '<p>Error loading students!</p>'
   }
 }

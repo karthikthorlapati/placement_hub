@@ -18,7 +18,6 @@ router.get('/users', auth, checkRole('admin'), async (req, res) => {
   }
 })
 
-
 // ✅ Delete a user
 router.delete('/users/:userId', auth, checkRole('admin'), async (req, res) => {
   try {

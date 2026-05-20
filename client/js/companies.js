@@ -7,7 +7,7 @@ if (!user || !token) {
 }
 
 // Show student name
-document.getElementById('studentName').innerText = Hello, `${user.name}!`
+document.getElementById('studentName').innerText = `Hello, ${user.name}!`
 
 // Store all companies globally for search
 let allCompanies = []
@@ -15,8 +15,8 @@ let allCompanies = []
 // Load all companies
 async function loadCompanies() {
   try {
-    const res = await fetch(`${API_URL}`/student/companies, {
-      headers: { 'Authorization': Bearer `${token}` }
+    const res = await fetch(`${API_URL}/student/companies`, {
+      headers: { 'Authorization': `Bearer ${token}` }
     })
 
     allCompanies = await res.json()
@@ -68,13 +68,13 @@ function displayCompanies(companies) {
 async function checkApplications(companies) {
   for (let company of companies) {
     try {
-      const res = await fetch(`${API_URL}`/student/check-application/`${company._id}`, {
-        headers: { 'Authorization': Bearer `${token}` }
+      const res = await fetch(`${API_URL}/student/check-application/${company._id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
       })
       const data = await res.json()
 
       if (data.applied) {
-        const btn = document.getElementById(btn-`${company._id}`)
+        const btn = document.getElementById(`btn-${company._id}`)
         if (btn) {
           btn.innerText = 'Already Applied ✅'
           btn.disabled = true
@@ -90,9 +90,9 @@ async function checkApplications(companies) {
 // Apply for company
 async function applyForCompany(companyId) {
   try {
-    const res = await fetch(`${API_URL}`/student/apply/`${companyId}`, {
+    const res = await fetch(`${API_URL}/student/apply/${companyId}`, {
       method: 'POST',
-      headers: { 'Authorization': Bearer `${token}` }
+      headers: { 'Authorization': `Bearer ${token}` }
     })
 
     const data = await res.json()
@@ -100,7 +100,7 @@ async function applyForCompany(companyId) {
     if (res.ok) {
       alert('Applied successfully! ✅')
       // Update button
-      const btn = document.getElementById(btn-`${companyId}`)
+      const btn = document.getElementById(`btn-${companyId}`)
       btn.innerText = 'Already Applied ✅'
       btn.disabled = true
       btn.style.background = '#95a5a6'
