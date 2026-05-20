@@ -746,3 +746,68 @@ textarea:focus {
 .students-table tr:hover {
   background: #f5f6fa;
 }
+
+
+
+/* Purple Stat Card */
+.stat-card.purple {
+  background: #9b59b6;
+}
+
+/* Filter Buttons */
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filter-btn {
+  padding: 8px 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  color: #2c3e50;
+}
+
+.filter-btn.active {
+  background: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+/* Role Badge */
+.role-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+.role-badge.student {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.role-badge.coordinator {
+  background: #d4edda;
+  color: #155724;
+}
+
+.role-badge.admin {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Delete Button Small */
+.btn-delete-small {
+  padding: 5px 10px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+}

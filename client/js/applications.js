@@ -7,7 +7,7 @@ if (!user || !token) {
 }
 
 // Show student name
-document.getElementById('studentName').innerText = Hello, `${user.name}!`
+document.getElementById('studentName').innerText = `Hello, ${user.name}!`
 
 // Load my applications
 async function loadApplications() {

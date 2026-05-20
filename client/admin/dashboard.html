@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Placement Hub</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<nav>
+  <h1>🎓 Placement Hub</h1>
+  <div class="nav-right">
+    <span id="adminName">Welcome!</span>
+    <a href="../login.html" onclick="logout()" class="btn-logout">Logout</a>
+  </div>
+</nav>
+
+<div class="dashboard-container">
+
+  <div class="sidebar">
+    <ul>
+      <li><a href="dashboard.html" class="active">🏠 Dashboard</a></li>
+      <li><a href="users.html">👥 All Users</a></li>
+      <li><a href="companies.html">🏢 All Companies</a></li>
+      <li><a href="applications.html">📋 All Applications</a></li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    <h2>Admin Dashboard</h2>
+
+    <div class="stats-container">
+      <div class="stat-card blue">
+        <h3 id="totalStudents">0</h3>
+        <p>Total Students</p>
+      </div>
+
+      <div class="stat-card green">
+        <h3 id="totalCoordinators">0</h3>
+        <p>Total Coordinators</p>
+      </div>
+
+      <div class="stat-card orange">
+        <h3 id="totalCompanies">0</h3>
+        <p>Total Companies</p>
+      </div>
+
+      <div class="stat-card purple">
+        <h3 id="totalApplications">0</h3>
+        <p>Total Applications</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Quick Actions</h3>
+      <div class="quick-actions">
+        <a href="users.html" class="action-btn">👥 Manage Users</a>
+        <a href="companies.html" class="action-btn">🏢 Manage Companies</a>
+        <a href="applications.html" class="action-btn">📋 View Applications</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script src="../js/admin-dashboard.js"></script>
+
+</body>
+</html>

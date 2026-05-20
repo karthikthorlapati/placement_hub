@@ -5,19 +5,26 @@ const Company = require('../models/Company')
 const Application = require('../models/Application')
 const User = require('../models/User')
 
-// ✅ Get all students
+// Get all students
 router.get('/students', auth, async (req, res) => {
   try {
     const students = await User.find({ role: 'student' }).select('-password')
     res.json(students)
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message })
+    console.log("REAL ERROR:", error)
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    })
   }
 })
 
-// ✅ Add a new company
+// Add a new company
 router.post('/companies', auth, async (req, res) => {
   try {
+    console.log("REQ BODY:", req.body)
+    console.log("USER:", req.user)
+
     const { name, description, role, package: pkg, eligibility, lastDate } = req.body
 
     const company = new Company({
@@ -31,24 +38,36 @@ router.post('/companies', auth, async (req, res) => {
     })
 
     await company.save()
-    res.status(201).json({ message: 'Company added successfully!', company })
+
+    res.status(201).json({
+      message: 'Company added successfully!',
+      company
+    })
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message })
+    console.log("REAL ERROR:", error)
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    })
   }
 })
 
-// ✅ Get all companies
+// Get all companies
 router.get('/companies', auth, async (req, res) => {
   try {
     const companies = await Company.find()
     res.json(companies)
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message })
+    console.log("REAL ERROR:", error)
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    })
   }
 })
 
-// ✅ Update company status
+// Update company
 router.put('/companies/:companyId', auth, async (req, res) => {
   try {
     const company = await Company.findByIdAndUpdate(
@@ -58,27 +77,44 @@ router.put('/companies/:companyId', auth, async (req, res) => {
     )
 
     if (!company) {
-      return res.status(404).json({ message: 'Company not found' })
+      return res.status(404).json({
+        message: 'Company not found'
+      })
     }
 
-    res.json({ message: 'Company updated successfully!', company })
+    res.json({
+      message: 'Company updated successfully!',
+      company
+    })
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message })
+    console.log("REAL ERROR:", error)
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    })
   }
 })
 
-// ✅ Delete company
+// Delete company
 router.delete('/companies/:companyId', auth, async (req, res) => {
   try {
     await Company.findByIdAndDelete(req.params.companyId)
-    res.json({ message: 'Company deleted successfully!' })
+
+    res.json({
+      message: 'Company deleted successfully!'
+    })
+
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message })
+    console.log("REAL ERROR:", error)
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    })
   }
 })
 
-// ✅ Get all applications for a company
+// Get applications
 router.get('/applications/:companyId', auth, async (req, res) => {
   try {
     const applications = await Application.find({
@@ -86,12 +122,17 @@ router.get('/applications/:companyId', auth, async (req, res) => {
     }).populate('student', '-password')
 
     res.json(applications)
+
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message })
+    console.log("REAL ERROR:", error)
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    })
   }
 })
 
-// ✅ Update application status
+// Update application
 router.put('/applications/:applicationId', auth, async (req, res) => {
   try {
     const application = await Application.findByIdAndUpdate(
@@ -101,17 +142,26 @@ router.put('/applications/:applicationId', auth, async (req, res) => {
     )
 
     if (!application) {
-      return res.status(404).json({ message: 'Application not found' })
+      return res.status(404).json({
+        message: 'Application not found'
+      })
     }
 
-    res.json({ message: 'Application status updated!', application })
+    res.json({
+      message: 'Application status updated!',
+      application
+    })
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message })
+    console.log("REAL ERROR:", error)
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    })
   }
 })
 
-// ✅ Get dashboard stats
+// Dashboard stats
 router.get('/stats', auth, async (req, res) => {
   try {
     const totalStudents = await User.countDocuments({ role: 'student' })
@@ -125,7 +175,11 @@ router.get('/stats', auth, async (req, res) => {
     })
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message })
+    console.log("REAL ERROR:", error)
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    })
   }
 })
 
