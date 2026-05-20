@@ -182,5 +182,39 @@ router.get('/stats', auth, async (req, res) => {
     })
   }
 })
+// ✅ Get company report - who applied and who didn't
+router.get('/company-report/:companyId', auth, async (req, res) => {
+  try {
+    // Get all students
+    const allStudents = await User.find({ role: 'student' }).select('-password')
+
+    // Get all applications for this company
+    const applications = await Application.find({
+      company: req.params.companyId
+    }).populate('student', '-password')
+
+    // Get list of student IDs who applied
+    const appliedStudentIds = applications.map(app =>
+      app.student._id.toString()
+    )
+
+    // Find students who did NOT apply
+    const notApplied = allStudents.filter(student =>
+      !appliedStudentIds.includes(student._id.toString())
+    )
+
+    res.json({
+      applied: applications,
+      notApplied: notApplied,
+      totalStudents: allStudents.length,
+      totalApplied: applications.length,
+      totalNotApplied: notApplied.length
+    })
+
+  } catch (error) {
+    console.log('Error:', error)
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+})
 
 module.exports = router
