@@ -811,3 +811,85 @@ textarea:focus {
   cursor: pointer;
   font-size: 12px;
 }
+
+
+/* Notifications Header */
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.btn-mark-all {
+  padding: 8px 20px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Notification Card */
+.notification-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 20px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.notification-card.unread {
+  background: #eaf4ff;
+  border: 1px solid #3498db;
+}
+
+.notification-card.read {
+  background: white;
+  border: 1px solid #ddd;
+}
+
+.notification-card:hover {
+  background: #f5f6fa;
+}
+
+.notification-icon {
+  font-size: 25px;
+}
+
+.notification-content p {
+  color: #2c3e50;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.notification-time {
+  color: #7f8c8d;
+  font-size: 12px;
+}
+
+.unread-dot {
+  width: 10px;
+  height: 10px;
+  background: #3498db;
+  border-radius: 50%;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Status Select */
+.status-select {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}

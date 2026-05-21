@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Applications - Placement Hub</title>
+  <title>Notifications - Placement Hub</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -25,25 +25,30 @@
       <ul>
         <li><a href="dashboard.html">🏠 Dashboard</a></li>
         <li><a href="companies.html">🏢 Companies</a></li>
-        <li><a href="applications.html" class="active">📋 My Applications</a></li>
-        <li><a href="notifications.html">🔔 Notifications</a></li>
+        <li><a href="applications.html">📋 My Applications</a></li>
+        <li><a href="notifications.html" class="active">🔔 Notifications</a></li>
       </ul>
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
-      <h2>My Applications</h2>
+      <div class="notifications-header">
+        <h2>🔔 Notifications</h2>
+        <button class="btn-mark-all" onclick="markAllRead()">
+          Mark All as Read
+        </button>
+      </div>
 
-      <!-- Applications List -->
-      <div id="applicationsList">
-        <p>Loading applications...</p>
+      <!-- Notifications List -->
+      <div id="notificationsList">
+        <p>Loading notifications...</p>
       </div>
 
     </div>
   </div>
 
   <script src="../js/main.js"></script>
-  <script src="../js/applications.js"></script>
+  <script src="../js/notifications.js"></script>
 
 </body>
 </html>

@@ -8,9 +8,10 @@ const User = require('../models/User')
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role, department, rollNumber, phone } = req.body
+    const emailFormatted = email.trim().toLowerCase()
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email })
+    const existingUser = await User.findOne({ email : emailFormatted })
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' })
     }
@@ -21,7 +22,7 @@ router.post('/register', async (req, res) => {
     // Create new user
     const user = new User({
       name,
-      email,
+      email:emailFormatted,
       password: hashedPassword,
       role,
       department,
@@ -45,7 +46,7 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body
 
     // Check if user exists
-    const user = await User.findOne({ email })
+    const user = await User.findOne({ email:email.trim().toLowerCase() })
     if (!user) {
       return res.status(400).json({ message: 'Invalid email or password' })
     }
