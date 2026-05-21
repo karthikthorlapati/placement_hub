@@ -7,7 +7,7 @@ const authRoutes = require('./routes/auth')
 const studentRoutes = require('./routes/student')
 const coordinatorRoutes = require('./routes/coordinator')
 const adminRoutes = require('./routes/admin')
-const notificationRoutes = require('./routes/notifications')
+const notificationRoutes = require('./routes/notification')
 
 const app = express()
 app.use(express.json())
@@ -21,7 +21,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/student', studentRoutes)
 app.use('/api/coordinator', coordinatorRoutes)
 app.use('/api/admin', adminRoutes)
-app.use('/api/notifications',notificationRoutes)
+app.use('/api/notifications', notificationRoutes)
 
 // Test route
 app.get('/', (req, res) => {

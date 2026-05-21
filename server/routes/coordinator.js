@@ -4,6 +4,7 @@ const auth = require('../middleware/auth')
 const Company = require('../models/Company')
 const Application = require('../models/Application')
 const User = require('../models/User')
+const Notification = require('../models/Notification')
 
 // Get all students
 router.get('/students', auth, async (req, res) => {
@@ -133,19 +134,26 @@ router.get('/applications/:companyId', auth, async (req, res) => {
 })
 
 // Update application
+// ✅ Update application status + send notification
 router.put('/applications/:applicationId', auth, async (req, res) => {
   try {
     const application = await Application.findByIdAndUpdate(
       req.params.applicationId,
       { status: req.body.status },
       { new: true }
-    )
+    ).populate('student').populate('company')
 
     if (!application) {
-      return res.status(404).json({
-        message: 'Application not found'
-      })
+      return res.status(404).json({ message: 'Application not found' })
     }
+
+    // Send notification to student
+    const notification = new Notification({
+      user: application.student._id,
+      message: `Your application for ${application.company.name} has been ${req.body.status}!`,
+      type: 'application'
+    })
+    await notification.save()
 
     res.json({
       message: 'Application status updated!',
@@ -153,11 +161,8 @@ router.put('/applications/:applicationId', auth, async (req, res) => {
     })
 
   } catch (error) {
-    console.log("REAL ERROR:", error)
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    })
+    console.log('Error:', error)
+    res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
 
