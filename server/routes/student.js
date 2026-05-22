@@ -4,6 +4,8 @@ const auth = require('../middleware/auth')
 const Company = require('../models/Company')
 const Application = require('../models/Application')
 const User = require('../models/User')
+const bcrypt = require('bcryptjs')
+
 
 // ✅ Get all active companies
 router.get('/companies', auth, async (req, res) => {
@@ -77,6 +79,59 @@ router.get('/check-application/:companyId', auth, async (req, res) => {
     res.json({ applied: !!application })
 
   } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+})
+
+// ✅ Update student profile
+router.put('/profile', auth, async (req, res) => {
+  try {
+    const { name, phone, department, rollNumber } = req.body
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.userId,
+      { name, phone, department, rollNumber },
+      { new: true }
+    ).select('-password')
+
+    res.json({
+      message: 'Profile updated successfully!',
+      user: updatedUser
+    })
+
+  } catch (error) {
+    console.log('Error:', error)
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+})
+
+// ✅ Change password
+router.put('/change-password', auth, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body
+
+    // Get user with password
+    const user = await User.findById(req.user.userId)
+
+    // Check old password
+    const isMatch = await bcrypt.compare(oldPassword, user.password)
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Old password is incorrect!' })
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+    // Update password
+    await User.findByIdAndUpdate(
+      req.user.userId,
+      { password: hashedPassword }
+    )
+
+    res.json({ message: 'Password changed successfully!' })
+
+  } catch (error) {
+    console.log('Error:', error)
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
