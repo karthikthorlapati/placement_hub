@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Placement Hub</title>
+  <title>Placement Hub - Campus Placement Portal</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -11,31 +11,93 @@
   <!-- Navigation -->
   <nav>
     <h1>🎓 Placement Hub</h1>
-    <a href="login.html">Login</a>
+    <div class="nav-links">
+      <a href="login.html" class="nav-login-btn">Login</a>
+      <a href="register.html" class="nav-register-btn">Register</a>
+    </div>
   </nav>
 
   <!-- Hero Section -->
   <div class="hero">
-    <h2>Welcome to Campus Placement Portal</h2>
-    <p>Connecting Students with Their Dream Companies</p>
-    <a href="login.html" class="btn">Get Started</a>
+    <div class="hero-content">
+      <h2>Welcome to Campus Placement Portal</h2>
+      <p>Connecting Students with Their Dream Companies</p>
+      <p class="hero-sub">
+        A smart platform to manage campus placements efficiently
+      </p>
+      <div class="hero-buttons">
+        <a href="register.html" class="btn-hero-primary">Get Started</a>
+        <a href="login.html" class="btn-hero-secondary">Login</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Section -->
+  <div class="landing-stats">
+    <div class="landing-stat">
+      <h3>🎓</h3>
+      <h4>Students</h4>
+      <p>Register and apply for campus drives easily</p>
+    </div>
+    <div class="landing-stat">
+      <h3>🏢</h3>
+      <h4>Companies</h4>
+      <p>Top companies visiting your campus</p>
+    </div>
+    <div class="landing-stat">
+      <h3>📊</h3>
+      <h4>Analytics</h4>
+      <p>Real time placement tracking and reports</p>
+    </div>
+    <div class="landing-stat">
+      <h3>🔔</h3>
+      <h4>Notifications</h4>
+      <p>Get instant updates on application status</p>
+    </div>
   </div>
 
   <!-- Features Section -->
   <div class="features">
     <div class="card">
-      <h3>👨‍🎓 Students</h3>
-      <p>View companies and apply for placement drives easily</p>
+      <h3>👨‍🎓 For Students</h3>
+      <ul class="feature-list">
+        <li>✅ View all available companies</li>
+        <li>✅ Apply with one click</li>
+        <li>✅ Track application status</li>
+        <li>✅ Get instant notifications</li>
+        <li>✅ Manage your profile</li>
+      </ul>
+      <a href="register.html" class="btn">Register as Student</a>
     </div>
     <div class="card">
-      <h3>👨‍💼 Coordinators</h3>
-      <p>Manage students and track placement status efficiently</p>
+      <h3>👨‍💼 For Coordinators</h3>
+      <ul class="feature-list">
+        <li>✅ Add and manage companies</li>
+        <li>✅ View all student applications</li>
+        <li>✅ Update application status</li>
+        <li>✅ Generate placement reports</li>
+        <li>✅ Track who applied and who didn't</li>
+      </ul>
+      <a href="register.html" class="btn">Register as Coordinator</a>
     </div>
     <div class="card">
-      <h3>⚙️ Admin</h3>
-      <p>Full control over the entire placement process</p>
+      <h3>⚙️ For Admin</h3>
+      <ul class="feature-list">
+        <li>✅ Full system control</li>
+        <li>✅ Manage all users</li>
+        <li>✅ View all companies</li>
+        <li>✅ Monitor all applications</li>
+        <li>✅ System wide analytics</li>
+      </ul>
+      <a href="login.html" class="btn">Admin Login</a>
     </div>
   </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>🎓 Placement Hub — Campus Placement Portal</p>
+    <p>Built with MERN Stack</p>
+  </footer>
 
 </body>
 </html>
