@@ -15,11 +15,16 @@ async function loadApplications() {
     const res = await fetch(`${API_URL}/student/my-applications`, {
       headers: { 'Authorization': Bearer `${token}` }
     })
+    console.log(res.status)
 
     const applications = await res.json()
+    if (!res.ok){
+      throw new Error("Failed to load")
+    }
     displayApplications(applications)
 
   } catch (error) {
+    console.log(error)
     document.getElementById('applicationsList').innerHTML =
       '<p>Error loading applications. Please try again.</p>'
   }
