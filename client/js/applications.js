@@ -13,18 +13,14 @@ document.getElementById('studentName').innerText = `Hello, ${user.name}!`
 async function loadApplications() {
   try {
     const res = await fetch(`${API_URL}/student/my-applications`, {
-      headers: { 'Authorization': Bearer `${token}` }
+      headers: { 'Authorization': `Bearer ${token}` }
     })
-    console.log(res.status)
 
     const applications = await res.json()
-    if (!res.ok){
-      throw new Error("Failed to load")
-    }
+    console.log('Applications:', applications)
     displayApplications(applications)
 
   } catch (error) {
-    console.log(error)
     document.getElementById('applicationsList').innerHTML =
       '<p>Error loading applications. Please try again.</p>'
   }
@@ -34,7 +30,7 @@ async function loadApplications() {
 function displayApplications(applications) {
   const applicationsList = document.getElementById('applicationsList')
 
-  if (applications.length === 0) {
+  if (!applications || applications.length === 0) {
     applicationsList.innerHTML = `
       <div class="empty-state">
         <h3>No Applications Yet!</h3>
@@ -48,13 +44,15 @@ function displayApplications(applications) {
   applicationsList.innerHTML = applications.map(app => `
     <div class="application-card">
       <div class="application-header">
-        <h3>${app.company.name}</h3>
+        <h3>${app.company?.name || 'Company Unavailable'}</h3>
         <span class="status-badge ${app.status}">${app.status}</span>
       </div>
       <div class="application-details">
-        <p>💼 <strong>Role:</strong> ${app.company.role}</p>
-        <p>💰 <strong>Package:</strong> ${app.company.package}</p>
-        <p>📅 <strong>Applied On:</strong> ${new Date(app.appliedAt).toLocaleDateString()}</p>
+        <p>💼 <strong>Role:</strong> ${app.company?.role || 'N/A'}</p>
+        <p>💰 <strong>Package:</strong> ${app.company?.package || 'N/A'}</p>
+        <p>📅 <strong>Applied On:</strong>
+          ${new Date(app.appliedAt).toLocaleDateString()}
+        </p>
       </div>
     </div>
   `).join('')

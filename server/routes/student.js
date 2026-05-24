@@ -46,14 +46,22 @@ router.post('/apply/:companyId', auth, async (req, res) => {
 })
 
 // ✅ Get my applications
+// ✅ Get my applications
 router.get('/my-applications', auth, async (req, res) => {
   try {
     const applications = await Application.find({
       student: req.user.userId
     }).populate('company')
 
-    res.json(applications)
+    // Filter out null companies
+    const validApplications = applications.filter(
+      app => app.company !== null && app.company !== undefined
+    )
+
+    res.json(validApplications)
+
   } catch (error) {
+    console.log('Error:', error)
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })

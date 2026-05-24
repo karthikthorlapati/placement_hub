@@ -65,57 +65,57 @@ async function loadReport() {
       appliedList.innerHTML = '<p>No students applied yet!</p>'
     } else {
       appliedList.innerHTML = `
-        <table class="students-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Department</th>
-              <th>Roll Number</th>
-              <th>Status</th>
-              <th>Update Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.applied.map(app => `
-              <tr>
-                <td>${app.student.name}</td>
-                <td>${app.student.email}</td>
-                <td>${app.student.department || 'N/A'}</td>
-                <td>${app.student.rollNumber || 'N/A'}</td>
-                <td>
-                  <span class="status-badge ${app.status}">
-                    ${app.status}
-                  </span>
-                </td>
-                <td>
-                  <select
-                    class="status-select"
-                    onchange="updateStatus('${app._id}', this.value)"
-                  >
-                    <option value="applied"
-                      ${app.status === 'applied' ? 'selected' : ''}>
-                      Applied
-                    </option>
-                    <option value="shortlisted"
-                      ${app.status === 'shortlisted' ? 'selected' : ''}>
-                      Shortlisted
-                    </option>
-                    <option value="rejected"
-                      ${app.status === 'rejected' ? 'selected' : ''}>
-                      Rejected
-                    </option>
-                    <option value="selected"
-                      ${app.status === 'selected' ? 'selected' : ''}>
-                      Selected
-                    </option>
-                  </select>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `
+  <table class="students-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Department</th>
+        <th>Roll Number</th>
+        <th>Status</th>
+        <th>Update Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${data.applied.map(app => `
+        <tr>
+          <td>${app.student?.name || 'N/A'}</td>
+          <td>${app.student?.email || 'N/A'}</td>
+          <td>${app.student?.department || 'N/A'}</td>
+          <td>${app.student?.rollNumber || 'N/A'}</td>
+          <td>
+            <span class="status-badge ${app.status}">
+              ${app.status}
+            </span>
+          </td>
+          <td>
+            <select
+              class="status-select"
+              onchange="updateStatus('${app._id}', this.value)"
+            >
+              <option value="applied"
+                ${app.status === 'applied' ? 'selected' : ''}>
+                Applied
+              </option>
+              <option value="shortlisted"
+                ${app.status === 'shortlisted' ? 'selected' : ''}>
+                Shortlisted
+              </option>
+              <option value="rejected"
+                ${app.status === 'rejected' ? 'selected' : ''}>
+                Rejected
+              </option>
+              <option value="selected"
+                ${app.status === 'selected' ? 'selected' : ''}>
+                Selected
+              </option>
+            </select>
+          </td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+`
     }
 
     // Show not applied students

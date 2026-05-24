@@ -188,38 +188,54 @@ router.get('/stats', auth, async (req, res) => {
   }
 })
 // ✅ Get company report - who applied and who didn't
+// ✅ Get company report
 router.get('/company-report/:companyId', auth, async (req, res) => {
   try {
     // Get all students
-    const allStudents = await User.find({ role: 'student' }).select('-password')
+    const allStudents = await User.find({
+      role: 'student'
+    }).select('-password')
 
     // Get all applications for this company
     const applications = await Application.find({
       company: req.params.companyId
-    }).populate('student', '-password')
+    }).populate({
+      path: 'student',
+      select: 'name email department rollNumber phone'
+    })
+
+    console.log('Applications found:', applications.length)
+    console.log('First application student:', applications[0]?.student)
+
+    // Filter out applications where student is null
+    const validApplications = applications.filter(
+      app => app.student !== null && app.student !== undefined
+    )
 
     // Get list of student IDs who applied
-    const appliedStudentIds = applications.map(app =>
-      app.student._id.toString()
+    const appliedStudentIds = validApplications.map(
+      app => app.student._id.toString()
     )
 
     // Find students who did NOT apply
-    const notApplied = allStudents.filter(student =>
-      !appliedStudentIds.includes(student._id.toString())
+    const notApplied = allStudents.filter(
+      student => !appliedStudentIds.includes(student._id.toString())
     )
 
     res.json({
-      applied: applications,
+      applied: validApplications,
       notApplied: notApplied,
       totalStudents: allStudents.length,
-      totalApplied: applications.length,
+      totalApplied: validApplications.length,
       totalNotApplied: notApplied.length
     })
 
   } catch (error) {
-    console.log('Error:', error)
-    res.status(500).json({ message: 'Server error', error: error.message })
+    console.log('Company report error:', error)
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    })
   }
 })
-
 module.exports = router
