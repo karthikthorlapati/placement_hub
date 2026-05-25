@@ -21,6 +21,9 @@ async function loadApplications() {
     })
 
     const applications = await res.json()
+    if (!res.ok){
+      throw new Error("Failed to load")
+    }
     displayApplications(applications)
 
   } catch (error) {

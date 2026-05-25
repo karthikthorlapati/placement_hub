@@ -41,21 +41,21 @@ function displayApplications(applications) {
     return
   }
 
-  applicationsList.innerHTML = applications.map(app => `
-    <div class="application-card">
-      <div class="application-header">
-        <h3>${app.company?.name || 'Company Unavailable'}</h3>
-        <span class="status-badge ${app.status}">${app.status}</span>
+  applicationsList.innerHTML = applications
+    .filter(app => app.company)
+    .map(app => `
+      <div class="application-card">
+        <div class="application-header">
+          <h3>${app.company.name}</h3>
+          <span class="status-badge ${app.status}">${app.status}</span>
+        </div>
+        <div class="application-details">
+          <p>💼 <strong>Role:</strong> ${app.company.role}</p>
+          <p>💰 <strong>Package:</strong> ${app.company.package}</p>
+          <p>📅 <strong>Applied On:</strong> ${new Date(app.appliedAt).toLocaleDateString()}</p>
+        </div>
       </div>
-      <div class="application-details">
-        <p>💼 <strong>Role:</strong> ${app.company?.role || 'N/A'}</p>
-        <p>💰 <strong>Package:</strong> ${app.company?.package || 'N/A'}</p>
-        <p>📅 <strong>Applied On:</strong>
-          ${new Date(app.appliedAt).toLocaleDateString()}
-        </p>
-      </div>
-    </div>
-  `).join('')
+    `).join('')
 }
 
 // Load applications on page load
