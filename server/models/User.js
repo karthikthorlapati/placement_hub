@@ -30,6 +30,12 @@ const userSchema = new mongoose.Schema({
   phone: {
     type: String,
     default: ''
+  },
+  cgpa: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 10
   }
 }, { timestamps: true })
 

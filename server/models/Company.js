@@ -21,6 +21,12 @@ const companySchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  minimumCgpa: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 10
+  },
   lastDate: {
     type: Date,
     required: true
