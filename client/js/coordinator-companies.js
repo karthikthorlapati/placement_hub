@@ -52,11 +52,11 @@ function displayCompanies(companies) {
       </div>
 
       <div class="company-details">
-        <p><strong>Role:</strong> ${company.role}</p>
-        <p><strong>Package:</strong> ${company.package}</p>
-        <p><strong>Eligibility:</strong> ${company.eligibility}</p>
-        <p><strong>Last Date:</strong> ${new Date(company.lastDate).toLocaleDateString()}</p>
-        <p><strong>Description:</strong> ${company.description}</p>
+        <p>💼 <strong>Role:</strong> ${company.role}</p>
+<p>💰 <strong>Package:</strong> ${company.package}</p>
+<p>🎓 <strong>Minimum CGPA:</strong> ${company.minimumCgpa || 0}</p>
+<p>📅 <strong>Last Date:</strong> ${new Date(company.lastDate).toLocaleDateString()}</p>
+<p>📝 <strong>Description:</strong> ${company.description}</p>
       </div>
 
       <div class="card-actions">
@@ -79,11 +79,11 @@ function displayCompanies(companies) {
 
 // Add company
 async function addCompany() {
-  const companyName = document.getElementById('companyName').value.trim()
-  const jobRole = document.getElementById('companyRole').value.trim()
-  const pkg = document.getElementById('companyPackage').value.trim()
-  const lastDate = document.getElementById('companyLastDate').value
-  const description = document.getElementById('companyDescription').value.trim()
+  const companyName = document.getElementById('companyName').value
+  const companyRole = document.getElementById('companyRole').value
+  const companyPackage = document.getElementById('companyPackage').value
+  const companyLastDate = document.getElementById('companyLastDate').value
+  const companyDescription = document.getElementById('companyDescription').value
   const minimumCgpa = document.getElementById('minimumCgpa').value
 
   const formError = document.getElementById('formError')
@@ -92,7 +92,8 @@ async function addCompany() {
   formError.style.display = 'none'
   formSuccess.style.display = 'none'
 
-  if (!companyName || !jobRole || !pkg || !lastDate) {
+  // Basic validation
+  if (!companyName || !companyRole || !companyPackage || !companyLastDate) {
     formError.style.display = 'block'
     formError.innerText = 'Please fill all required fields!'
     return
@@ -107,11 +108,11 @@ async function addCompany() {
       },
       body: JSON.stringify({
         name: companyName,
-        role: jobRole,
-        package: pkg,
-        description,
-        lastDate,
-        minimumCgpa:minimumCgpa ? parseFloat(minimumCgpa):0
+        role: companyRole,
+        package: companyPackage,
+        lastDate: companyLastDate,
+        description: companyDescription,
+        minimumCgpa: minimumCgpa ? parseFloat(minimumCgpa) : 0
       })
     })
 
@@ -119,31 +120,29 @@ async function addCompany() {
 
     if (res.ok) {
       formSuccess.style.display = 'block'
-      formSuccess.innerText = 'Company added successfully!'
+      formSuccess.innerText = 'Company added successfully! ✅'
 
-      document.getElementById('minimumCgpa').value = ''
+      // Clear form
       document.getElementById('companyName').value = ''
       document.getElementById('companyRole').value = ''
       document.getElementById('companyPackage').value = ''
       document.getElementById('companyLastDate').value = ''
-      document.getElementById('companyEligibility').value = ''
       document.getElementById('companyDescription').value = ''
+      document.getElementById('minimumCgpa').value = ''
 
+      // Reload companies
       loadCompanies()
 
     } else {
       formError.style.display = 'block'
-      formError.innerText = data.error || data.message
+      formError.innerText = data.message
     }
 
   } catch (error) {
-    console.log(error)
     formError.style.display = 'block'
-    formError.innerText = error.message
+    formError.innerText = 'Something went wrong!'
   }
 }
-
-
 // Update company status
 async function updateStatus(companyId, status) {
   try {

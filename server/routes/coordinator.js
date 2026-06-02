@@ -23,17 +23,23 @@ router.get('/students', auth, async (req, res) => {
 // Add a new company
 router.post('/companies', auth, async (req, res) => {
   try {
-    console.log("REQ BODY:", req.body)
-    console.log("USER:", req.user)
+    const {
+      name,
+      description,
+      role,
+      package: pkg,
+      minimumCgpa,
+      lastDate
+    } = req.body
 
-    const { name, description, role, package: pkg, eligibility, lastDate } = req.body
+    console.log('Received minimumCgpa:', minimumCgpa)
 
     const company = new Company({
       name,
       description,
       role,
       package: pkg,
-      eligibility,
+      minimumCgpa: minimumCgpa || 0,
       lastDate,
       createdBy: req.user.userId
     })
@@ -46,7 +52,7 @@ router.post('/companies', auth, async (req, res) => {
     })
 
   } catch (error) {
-    console.log("REAL ERROR:", error)
+    console.log('REAL ERROR:', error)
     res.status(500).json({
       message: 'Server error',
       error: error.message
