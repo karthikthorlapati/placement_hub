@@ -17,10 +17,6 @@ const companySchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  eligibility: {
-    type: String,
-    default: ''
-  },
   minimumCgpa: {
     type: Number,
     default: 0,

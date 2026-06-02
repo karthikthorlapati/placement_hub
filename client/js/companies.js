@@ -46,7 +46,6 @@ function displayCompanies(companies) {
       <div class="company-details">
         <p>💼 <strong>Role:</strong> ${company.role}</p>
         <p>💰 <strong>Package:</strong> ${company.package}</p>
-        <p>📋 <strong>Eligibility:</strong> ${company.eligibility}</p>
         <p>🎓 <strong>Minimum CGPA:</strong> ${company.minimumCgpa || 0}</p>
         <p>📅 <strong>Last Date:</strong>
           ${new Date(company.lastDate).toLocaleDateString()}

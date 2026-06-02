@@ -83,7 +83,6 @@ async function addCompany() {
   const jobRole = document.getElementById('companyRole').value.trim()
   const pkg = document.getElementById('companyPackage').value.trim()
   const lastDate = document.getElementById('companyLastDate').value
-  const eligibility = document.getElementById('companyEligibility').value.trim()
   const description = document.getElementById('companyDescription').value.trim()
   const minimumCgpa = document.getElementById('minimumCgpa').value
 
@@ -110,7 +109,6 @@ async function addCompany() {
         name: companyName,
         role: jobRole,
         package: pkg,
-        eligibility,
         description,
         lastDate,
         minimumCgpa:minimumCgpa ? parseFloat(minimumCgpa):0
