@@ -28,6 +28,7 @@ async function loadProfile() {
     document.getElementById('department').value = data.department || ''
     document.getElementById('rollNumber').value = data.rollNumber || ''
     document.getElementById('phone').value = data.phone || ''
+    document.getElementById('cgpa').value = data.cgpa || ''
 
   } catch (error) {
     console.log('Error loading profile:', error)
@@ -38,14 +39,23 @@ async function loadProfile() {
 async function updateProfile() {
   const name = document.getElementById('name').value
   const phone = document.getElementById('phone').value
+  const cgpa = document.getElementById('cgpa').value
   const department = document.getElementById('department').value
   const rollNumber = document.getElementById('rollNumber').value
+
 
   const profileSuccess = document.getElementById('profileSuccess')
   const profileError = document.getElementById('profileError')
 
   profileSuccess.style.display = 'none'
   profileError.style.display = 'none'
+
+  // Validate CGPA
+  if (cgpa && (cgpa < 0 || cgpa > 10)) {
+    profileError.style.display = 'block'
+    profileError.innerText = 'CGPA must be between 0 and 10!'
+    return
+  }
 
   try {
     const res = await fetch(`${API_URL}/student/profile`, {
@@ -54,7 +64,7 @@ async function updateProfile() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ name, phone, department, rollNumber })
+      body: JSON.stringify({ name, phone, department, rollNumber,  cgpa: cgpa ? parseFloat(cgpa) : 0 })
     })
 
     const data = await res.json()

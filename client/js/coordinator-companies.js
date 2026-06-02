@@ -85,6 +85,7 @@ async function addCompany() {
   const lastDate = document.getElementById('companyLastDate').value
   const eligibility = document.getElementById('companyEligibility').value.trim()
   const description = document.getElementById('companyDescription').value.trim()
+  const minimumCgpa = document.getElementById('minimumCgpa').value
 
   const formError = document.getElementById('formError')
   const formSuccess = document.getElementById('formSuccess')
@@ -111,7 +112,8 @@ async function addCompany() {
         package: pkg,
         eligibility,
         description,
-        lastDate
+        lastDate,
+        minimumCgpa:minimumCgpa ? parseFloat(minimumCgpa):0
       })
     })
 
@@ -121,6 +123,7 @@ async function addCompany() {
       formSuccess.style.display = 'block'
       formSuccess.innerText = 'Company added successfully!'
 
+      document.getElementById('minimumCgpa').value = ''
       document.getElementById('companyName').value = ''
       document.getElementById('companyRole').value = ''
       document.getElementById('companyPackage').value = ''

@@ -47,20 +47,32 @@ function displayCompanies(companies) {
         <p>💼 <strong>Role:</strong> ${company.role}</p>
         <p>💰 <strong>Package:</strong> ${company.package}</p>
         <p>📋 <strong>Eligibility:</strong> ${company.eligibility}</p>
-        <p>📅 <strong>Last Date:</strong> ${new Date(company.lastDate).toLocaleDateString()}</p>
+        <p>🎓 <strong>Minimum CGPA:</strong> ${company.minimumCgpa || 0}</p>
+        <p>📅 <strong>Last Date:</strong>
+          ${new Date(company.lastDate).toLocaleDateString()}
+        </p>
         <p>📝 <strong>Description:</strong> ${company.description}</p>
       </div>
-      <button
-        class="apply-btn"
-        id="btn-${company._id}"
-        onclick="applyForCompany('${company._id}')"
-      >
-        Apply Now
-      </button>
+
+      ${company.isEligible ?
+        `<button
+          class="apply-btn"
+          id="btn-${company._id}"
+          onclick="applyForCompany('${company._id}')"
+        >
+          Apply Now
+        </button>` :
+        `<button
+          class="apply-btn not-eligible"
+          disabled
+        >
+          ❌ Not Eligible (Min CGPA: ${company.minimumCgpa})
+        </button>`
+      }
     </div>
   `).join('')
 
-  // Check which companies already applied
+  // Check already applied companies
   checkApplications(companies)
 }
 

@@ -5,22 +5,26 @@ document.getElementById('role').addEventListener('change', function () {
   const departmentField = document.getElementById('departmentField')
   const rollField = document.getElementById('rollField')
   const phoneField = document.getElementById('phoneField')
+  const cgpaField = document.getElementById('cgpaField')
 
   if (role === 'student') {
     // Show all fields
     departmentField.style.display = 'block'
     rollField.style.display = 'block'
     phoneField.style.display = 'block'
+    cgpaField.style.display = 'block'
   } else if (role === 'coordinator') {
     // Show only department
     departmentField.style.display = 'block'
     rollField.style.display = 'none'
     phoneField.style.display = 'none'
+    cgpaField.style.display = 'none'
   } else {
     // Hide all
     departmentField.style.display = 'none'
     rollField.style.display = 'none'
     phoneField.style.display = 'none'
+    cgpaField.style.display = 'none'
   }
 })
 
@@ -35,6 +39,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   const department = document.getElementById('department').value
   const rollNumber = document.getElementById('rollNumber').value
   const phone = document.getElementById('phone').value
+  const cgpa = document.getElementById('cgpa').value
 
   const errorMsg = document.getElementById('errorMsg')
   const successMsg = document.getElementById('successMsg')
@@ -61,7 +66,8 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
         role,
         department,
         rollNumber,
-        phone
+        phone,
+        cgpa: cgpa ? parseFloat(cgpa) : 0
       })
     })
 
