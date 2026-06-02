@@ -26,11 +26,11 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
     // Redirect based on role
     if (data.user.role === 'student') {
-      window.location.href = 'student/dashboard.html'
+      window.location.href = 'http://localhost:3000/student/dashboard'
     } else if (data.user.role === 'coordinator') {
-      window.location.href = 'coordinator/dashboard.html'
+      window.location.href = 'http://localhost:3000/coordinator/dashboard'
     } else if (data.user.role === 'admin') {
-      window.location.href = 'admin/dashboard.html'
+      window.location.href = 'http://localhost:3000/admin/dashboard'
     }
 
   } catch (error) {
