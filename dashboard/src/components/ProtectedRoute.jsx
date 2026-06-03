@@ -4,14 +4,12 @@ const ProtectedRoute = ({ children, role }) => {
   const { user, token } = useAuth()
 
   if (!user || !token) {
-    window.location.href =
-      'http://127.0.0.1:5500/placement_hub/client/login.html'
+    window.location.href = '/login.html'
     return null
   }
 
   if (role && user.role !== role) {
-    window.location.href =
-      'http://127.0.0.1:5500/placement_hub/client/login.html'
+    window.location.href = '/login.html'
     return null
   }
 
