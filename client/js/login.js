@@ -26,13 +26,22 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
 
-    // Redirect based on role
+    // Build redirect URL with token as query param
+    const token = encodeURIComponent(data.token)
+    const user = encodeURIComponent(JSON.stringify(data.user))
+
     if (data.user.role === 'student') {
-      window.location.replace('http://localhost:3000/student/dashboard')
+      window.location.replace(
+        `http://localhost:3000/student/dashboard?token=${token}&user=${user}`
+      )
     } else if (data.user.role === 'coordinator') {
-      window.location.replace('http://localhost:3000/coordinator/dashboard')
+      window.location.replace(
+        `http://localhost:3000/coordinator/dashboard?token=${token}&user=${user}`
+      )
     } else if (data.user.role === 'admin') {
-      window.location.replace('http://localhost:3000/admin/dashboard')
+      window.location.replace(
+        `http://localhost:3000/admin/dashboard?token=${token}&user=${user}`
+      )
     }
 
   } catch (error) {

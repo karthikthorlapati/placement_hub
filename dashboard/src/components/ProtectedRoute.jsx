@@ -1,15 +1,18 @@
-import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const ProtectedRoute = ({ children, role }) => {
   const { user, token } = useAuth()
 
   if (!user || !token) {
-    return <Navigate to='/login' replace />
+    window.location.href =
+      'http://127.0.0.1:5500/placement_hub/client/login.html'
+    return null
   }
 
   if (role && user.role !== role) {
-    return <Navigate to='/login' replace />
+    window.location.href =
+      'http://127.0.0.1:5500/placement_hub/client/login.html'
+    return null
   }
 
   return children
