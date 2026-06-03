@@ -3,12 +3,6 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import './styles/global.css'
 
-// Redirect to HTML login page
-const LoginRedirect = () => {
-  window.location.href = 'http://127.0.0.1:5500/placement_hub/client/login.html'
-  return null
-}
-
 // Placeholder component
 const ComingSoon = ({ page }) => (
   <div style={{ padding: '30px' }}>
@@ -24,9 +18,6 @@ const App = () => {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-
-          {/* Login redirect */}
-          <Route path='/login' element={<LoginRedirect />} />
 
           {/* Default redirect */}
           <Route path='/' element={<Navigate to='/student/dashboard' replace />} />

@@ -5,8 +5,10 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   const password = document.getElementById('password').value
   const errorMsg = document.getElementById('errorMsg')
 
+  errorMsg.style.display = 'none'
+
   try {
-    const response = await fetch(`${API_URL}/auth/login`, {
+    const response = await fetch('http://localhost:5000/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -15,22 +17,22 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const data = await response.json()
 
     if (!response.ok) {
-      // Show error message
       errorMsg.style.display = 'block'
       errorMsg.innerText = data.message
       return
     }
 
     // Save token and user
-    saveToken(data.token, data.user)
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
 
     // Redirect based on role
     if (data.user.role === 'student') {
-      window.location.href = 'http://localhost:3000/student/dashboard'
+      window.location.replace('http://localhost:3000/student/dashboard')
     } else if (data.user.role === 'coordinator') {
-      window.location.href = 'http://localhost:3000/coordinator/dashboard'
+      window.location.replace('http://localhost:3000/coordinator/dashboard')
     } else if (data.user.role === 'admin') {
-      window.location.href = 'http://localhost:3000/admin/dashboard'
+      window.location.replace('http://localhost:3000/admin/dashboard')
     }
 
   } catch (error) {
