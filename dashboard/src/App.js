@@ -3,13 +3,14 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import './styles/global.css'
 
-// Redirect to HTML login page
-const LoginRedirect = () => {
-  window.location.href = 'http://127.0.0.1:5500/placement_hub/client/login.html'
-  return null
-}
+// Student Pages
+import StudentDashboard from './pages/student/Dashboard'
+import Companies from './pages/student/Companies'
+import Applications from './pages/student/Applications'
+import Notifications from './pages/student/Notifications'
+import Profile from './pages/student/Profile'
 
-// Placeholder component
+// Placeholder for coordinator and admin
 const ComingSoon = ({ page }) => (
   <div style={{ padding: '30px' }}>
     <h2 style={{ color: '#2c3e50' }}>{page}</h2>
@@ -18,6 +19,12 @@ const ComingSoon = ({ page }) => (
     </p>
   </div>
 )
+
+// Login redirect
+const LoginRedirect = () => {
+  window.location.href = '/login.html'
+  return null
+}
 
 const App = () => {
   return (
@@ -29,32 +36,34 @@ const App = () => {
           <Route path='/login' element={<LoginRedirect />} />
 
           {/* Default redirect */}
-          <Route path='/' element={<Navigate to='/student/dashboard' replace />} />
+          <Route path='/' element={
+            <Navigate to='/student/dashboard' replace />
+          } />
 
           {/* Student Routes */}
           <Route path='/student/dashboard' element={
             <ProtectedRoute role='student'>
-              <ComingSoon page='🏠 Student Dashboard' />
+              <StudentDashboard />
             </ProtectedRoute>
           } />
           <Route path='/student/companies' element={
             <ProtectedRoute role='student'>
-              <ComingSoon page='🏢 Companies' />
+              <Companies />
             </ProtectedRoute>
           } />
           <Route path='/student/applications' element={
             <ProtectedRoute role='student'>
-              <ComingSoon page='📋 My Applications' />
+              <Applications />
             </ProtectedRoute>
           } />
           <Route path='/student/notifications' element={
             <ProtectedRoute role='student'>
-              <ComingSoon page='🔔 Notifications' />
+              <Notifications />
             </ProtectedRoute>
           } />
           <Route path='/student/profile' element={
             <ProtectedRoute role='student'>
-              <ComingSoon page='👤 Profile' />
+              <Profile />
             </ProtectedRoute>
           } />
 
