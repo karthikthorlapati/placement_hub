@@ -10,7 +10,13 @@ import Applications from './pages/student/Applications'
 import Notifications from './pages/student/Notifications'
 import Profile from './pages/student/Profile'
 
-// Placeholder for coordinator and admin
+// Coordinator Pages
+import CoordinatorDashboard from './pages/coordinator/Dashboard'
+import Students from './pages/coordinator/Students'
+import CoordinatorCompanies from './pages/coordinator/Companies'
+import Report from './pages/coordinator/Report'
+
+// Admin Placeholder
 const ComingSoon = ({ page }) => (
   <div style={{ padding: '30px' }}>
     <h2 style={{ color: '#2c3e50' }}>{page}</h2>
@@ -70,22 +76,22 @@ const App = () => {
           {/* Coordinator Routes */}
           <Route path='/coordinator/dashboard' element={
             <ProtectedRoute role='coordinator'>
-              <ComingSoon page='🏠 Coordinator Dashboard' />
+              <CoordinatorDashboard />
             </ProtectedRoute>
           } />
           <Route path='/coordinator/students' element={
             <ProtectedRoute role='coordinator'>
-              <ComingSoon page='👨‍🎓 Students' />
+              <Students />
             </ProtectedRoute>
           } />
           <Route path='/coordinator/companies' element={
             <ProtectedRoute role='coordinator'>
-              <ComingSoon page='🏢 Companies' />
+              <CoordinatorCompanies />
             </ProtectedRoute>
           } />
           <Route path='/coordinator/report' element={
             <ProtectedRoute role='coordinator'>
-              <ComingSoon page='📊 Reports' />
+              <Report />
             </ProtectedRoute>
           } />
 
