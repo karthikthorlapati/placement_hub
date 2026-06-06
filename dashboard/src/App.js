@@ -16,15 +16,11 @@ import Students from './pages/coordinator/Students'
 import CoordinatorCompanies from './pages/coordinator/Companies'
 import Report from './pages/coordinator/Report'
 
-// Admin Placeholder
-const ComingSoon = ({ page }) => (
-  <div style={{ padding: '30px' }}>
-    <h2 style={{ color: '#2c3e50' }}>{page}</h2>
-    <p style={{ color: '#7f8c8d', marginTop: '10px' }}>
-      Coming in next days!
-    </p>
-  </div>
-)
+// Admin Pages
+import AdminDashboard from './pages/admin/Dashboard'
+import Users from './pages/admin/Users'
+import AdminCompanies from './pages/admin/Companies'
+import AdminApplications from './pages/admin/Applications'
 
 // Login redirect
 const LoginRedirect = () => {
@@ -98,22 +94,22 @@ const App = () => {
           {/* Admin Routes */}
           <Route path='/admin/dashboard' element={
             <ProtectedRoute role='admin'>
-              <ComingSoon page='🏠 Admin Dashboard' />
+              <AdminDashboard />
             </ProtectedRoute>
           } />
           <Route path='/admin/users' element={
             <ProtectedRoute role='admin'>
-              <ComingSoon page='👥 All Users' />
+              <Users />
             </ProtectedRoute>
           } />
           <Route path='/admin/companies' element={
             <ProtectedRoute role='admin'>
-              <ComingSoon page='🏢 All Companies' />
+              <AdminCompanies />
             </ProtectedRoute>
           } />
           <Route path='/admin/applications' element={
             <ProtectedRoute role='admin'>
-              <ComingSoon page='📋 All Applications' />
+              <AdminApplications />
             </ProtectedRoute>
           } />
 
