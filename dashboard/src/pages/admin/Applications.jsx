@@ -14,7 +14,11 @@ const AdminApplications = () => {
   const loadApplications = async () => {
     try {
       const data = await adminApi.getApplications()
-      setApplications(Array.isArray(data) ? data : [])
+      // Filter out applications where company is null
+      const validApps = Array.isArray(data)
+        ? data.filter(app => app.company !== null && app.student !== null)
+        : []
+      setApplications(validApps)
     } catch (error) {
       console.log('Error:', error)
     } finally {
@@ -32,10 +36,22 @@ const AdminApplications = () => {
     <Layout>
       <h2 className='page-title'>📋 All Applications</h2>
 
+      {/* Stats */}
+      <div style={{
+        background: '#3498db',
+        color: 'white',
+        padding: '15px 25px',
+        borderRadius: '10px',
+        marginBottom: '20px',
+        display: 'inline-block'
+      }}>
+        <strong>Total Applications: {applications.length}</strong>
+      </div>
+
       {applications.length === 0 ? (
         <div className='empty-state'>
           <h3>No Applications Found!</h3>
-          <p>No applications submitted yet.</p>
+          <p>No valid applications submitted yet.</p>
         </div>
       ) : (
         <div className='section'>
@@ -44,8 +60,10 @@ const AdminApplications = () => {
               <tr>
                 <th>Student Name</th>
                 <th>Email</th>
+                <th>Department</th>
                 <th>Company</th>
                 <th>Role</th>
+                <th>Package</th>
                 <th>Status</th>
                 <th>Applied On</th>
               </tr>
@@ -55,8 +73,10 @@ const AdminApplications = () => {
                 <tr key={app._id}>
                   <td>{app.student?.name || 'N/A'}</td>
                   <td>{app.student?.email || 'N/A'}</td>
+                  <td>{app.student?.department || 'N/A'}</td>
                   <td>{app.company?.name || 'N/A'}</td>
                   <td>{app.company?.role || 'N/A'}</td>
+                  <td>{app.company?.package || 'N/A'}</td>
                   <td>
                     <span className={`badge badge-${app.status}`}>
                       {app.status}

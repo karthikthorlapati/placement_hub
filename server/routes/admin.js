@@ -49,13 +49,22 @@ router.delete('/companies/:companyId', auth, checkRole('admin'), async (req, res
 })
 
 // ✅ Get all applications
+// ✅ Get all applications
 router.get('/applications', auth, checkRole('admin'), async (req, res) => {
   try {
     const applications = await Application.find()
       .populate('student', '-password')
       .populate('company')
-    res.json(applications)
+
+    // Filter out null companies and students
+    const validApplications = applications.filter(
+      app => app.company !== null && app.student !== null
+    )
+
+    res.json(validApplications)
+
   } catch (error) {
+    console.log('Error:', error)
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
