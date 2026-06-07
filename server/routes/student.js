@@ -9,21 +9,28 @@ const bcrypt = require('bcryptjs')
 
 // ✅ Get all active companies
 // ✅ Get all active companies with eligibility check
+// ✅ Get active companies for student's department
 router.get('/companies', auth, async (req, res) => {
   try {
-    const companies = await Company.find({ status: 'active' })
-
-    // Get student profile to check CGPA
     const student = await User.findById(req.user.userId)
+    const department = student.department
 
-    // Add eligibility flag to each company
+    // Get companies for student's department or all departments
+    const companies = await Company.find({
+      status: 'active',
+      $or: [
+        { department: department },
+        { department: 'all' }
+      ]
+    })
+
+    // Add eligibility flag
     const companiesWithEligibility = companies.map(company => ({
       ...company._doc,
       isEligible: student.cgpa >= company.minimumCgpa
     }))
 
     res.json(companiesWithEligibility)
-
   } catch (error) {
     console.log('Error:', error)
     res.status(500).json({ message: 'Server error', error: error.message })

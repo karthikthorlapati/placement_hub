@@ -23,6 +23,10 @@ const companySchema = new mongoose.Schema({
     min: 0,
     max: 10
   },
+  department: {
+    type: String,
+    default: 'all'
+  },
   lastDate: {
     type: Date,
     required: true

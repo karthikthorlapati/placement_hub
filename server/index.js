@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth')
 const studentRoutes = require('./routes/student')
 const coordinatorRoutes = require('./routes/coordinator')
 const adminRoutes = require('./routes/admin')
+const headRoutes = require('./routes/head')
 const notificationRoutes = require('./routes/notification')
 
 const app = express()
@@ -29,6 +30,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/student', studentRoutes)
 app.use('/api/coordinator', coordinatorRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/head', headRoutes)
 app.use('/api/notifications', notificationRoutes)
 
 // Test route

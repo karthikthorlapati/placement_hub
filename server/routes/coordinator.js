@@ -7,22 +7,32 @@ const User = require('../models/User')
 const Notification = require('../models/Notification')
 
 // Get all students
+// ✅ Get students by coordinator's department only
 router.get('/students', auth, async (req, res) => {
   try {
-    const students = await User.find({ role: 'student' }).select('-password')
+    // Get coordinator's department
+    const coordinator = await User.findById(req.user.userId)
+    const department = coordinator.department
+
+    // Filter students by same department
+    const filter = { role: 'student' }
+    if (department && department !== '') {
+      filter.department = department
+    }
+
+    const students = await User.find(filter).select('-password')
     res.json(students)
   } catch (error) {
-    console.log("REAL ERROR:", error)
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    })
+    console.log('REAL ERROR:', error)
+    res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
 
 // Add a new company
+// ✅ Add company with coordinator's department
 router.post('/companies', auth, async (req, res) => {
   try {
+    const coordinator = await User.findById(req.user.userId)
     const {
       name,
       description,
@@ -32,45 +42,47 @@ router.post('/companies', auth, async (req, res) => {
       lastDate
     } = req.body
 
-    console.log('Received minimumCgpa:', minimumCgpa)
-
     const company = new Company({
       name,
       description,
       role,
       package: pkg,
       minimumCgpa: minimumCgpa || 0,
+      department: coordinator.department || 'all',
       lastDate,
       createdBy: req.user.userId
     })
 
     await company.save()
-
     res.status(201).json({
       message: 'Company added successfully!',
       company
     })
-
   } catch (error) {
     console.log('REAL ERROR:', error)
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    })
+    res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
 
 // Get all companies
+// ✅ Get companies by coordinator's department
 router.get('/companies', auth, async (req, res) => {
   try {
-    const companies = await Company.find()
+    const coordinator = await User.findById(req.user.userId)
+    const department = coordinator.department
+
+    // Show companies for their department or all departments
+    const companies = await Company.find({
+      $or: [
+        { department: department },
+        { department: 'all' }
+      ]
+    })
+
     res.json(companies)
   } catch (error) {
-    console.log("REAL ERROR:", error)
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    })
+    console.log('REAL ERROR:', error)
+    res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
 
@@ -195,53 +207,50 @@ router.get('/stats', auth, async (req, res) => {
 })
 // ✅ Get company report - who applied and who didn't
 // ✅ Get company report
+// ✅ Get company report filtered by department
 router.get('/company-report/:companyId', auth, async (req, res) => {
   try {
-    // Get all students
-    const allStudents = await User.find({
-      role: 'student'
-    }).select('-password')
+    const coordinator = await User.findById(req.user.userId)
+    const department = coordinator.department
 
-    // Get all applications for this company
+    // Get students from coordinator's department only
+    const filter = { role: 'student' }
+    if (department && department !== '') {
+      filter.department = department
+    }
+    const allStudents = await User.find(filter).select('-password')
+
     const applications = await Application.find({
       company: req.params.companyId
     }).populate({
       path: 'student',
-      select: 'name email department rollNumber phone'
+      select: 'name email department rollNumber phone cgpa'
     })
 
-    console.log('Applications found:', applications.length)
-    console.log('First application student:', applications[0]?.student)
-
-    // Filter out applications where student is null
+    // Filter valid + same department applications
     const validApplications = applications.filter(
-      app => app.student !== null && app.student !== undefined
+      app => app.student !== null &&
+      (department === '' || app.student.department === department)
     )
 
-    // Get list of student IDs who applied
     const appliedStudentIds = validApplications.map(
       app => app.student._id.toString()
     )
 
-    // Find students who did NOT apply
     const notApplied = allStudents.filter(
       student => !appliedStudentIds.includes(student._id.toString())
     )
 
     res.json({
       applied: validApplications,
-      notApplied: notApplied,
+      notApplied,
       totalStudents: allStudents.length,
       totalApplied: validApplications.length,
       totalNotApplied: notApplied.length
     })
-
   } catch (error) {
-    console.log('Company report error:', error)
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    })
+    console.log('Error:', error)
+    res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
 module.exports = router
