@@ -1,30 +1,31 @@
 // Show or hide fields based on role selection
 document.getElementById('role').addEventListener('change', function () {
   const role = this.value
-
   const departmentField = document.getElementById('departmentField')
   const rollField = document.getElementById('rollField')
   const phoneField = document.getElementById('phoneField')
   const cgpaField = document.getElementById('cgpaField')
 
   if (role === 'student') {
-    // Show all fields
     departmentField.style.display = 'block'
     rollField.style.display = 'block'
     phoneField.style.display = 'block'
     cgpaField.style.display = 'block'
   } else if (role === 'coordinator') {
-    // Show only department
-    departmentField.style.display = 'block'
-    rollField.style.display = 'none'
-    phoneField.style.display = 'none'
-    cgpaField.style.display = 'none'
+  departmentField.style.display = 'block'
+  rollField.style.display = 'none'
+  phoneField.style.display = 'none'
+  cgpaField.style.display = 'none'
+  } else if (role === 'head') {
+  departmentField.style.display = 'none'
+  rollField.style.display = 'none'
+  phoneField.style.display = 'none'
+  cgpaField.style.display = 'none'
   } else {
-    // Hide all
-    departmentField.style.display = 'none'
-    rollField.style.display = 'none'
-    phoneField.style.display = 'none'
-    cgpaField.style.display = 'none'
+  departmentField.style.display = 'none'
+  rollField.style.display = 'none'
+  phoneField.style.display = 'none'
+  cgpaField.style.display = 'none'
   }
 })
 

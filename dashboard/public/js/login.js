@@ -31,6 +31,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       window.location.href = '/student/dashboard'
     } else if (data.user.role === 'coordinator') {
       window.location.href = '/coordinator/dashboard'
+    } else if (data.user.role === 'head') {
+      window.location.href = '/head/dashboard'
     } else if (data.user.role === 'admin') {
       window.location.href = '/admin/dashboard'
     }
