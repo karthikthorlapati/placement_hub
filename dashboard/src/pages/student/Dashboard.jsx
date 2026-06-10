@@ -2,13 +2,19 @@ import { useState, useEffect } from 'react'
 import Layout from '../../components/Layout'
 import StatCard from '../../components/StatCard'
 import { studentApi } from '../../api'
-import { useAuth } from '../../context/AuthContext'
 import { formatDate } from '../../utils/helpers'
+import { Link } from 'react-router-dom'
+
+const priorityColors = {
+  high: { bg: '#f8d7da', color: '#dc3545', label: '🔴 High Priority' },
+  medium: { bg: '#fff3cd', color: '#ffc107', label: '🟡 Medium Priority' },
+  low: { bg: '#d4edda', color: '#28a745', label: '🟢 Low Priority' }
+}
 
 const StudentDashboard = () => {
-  const { user } = useAuth()
   const [companies, setCompanies] = useState([])
   const [applications, setApplications] = useState([])
+  const [announcements, setAnnouncements] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -17,12 +23,15 @@ const StudentDashboard = () => {
 
   const loadData = async () => {
     try {
-      const [companiesData, applicationsData] = await Promise.all([
-        studentApi.getCompanies(),
-        studentApi.getMyApplications()
-      ])
+      const [companiesData, applicationsData, announcementsData] =
+        await Promise.all([
+          studentApi.getCompanies(),
+          studentApi.getMyApplications(),
+          studentApi.getAnnouncements()
+        ])
       setCompanies(Array.isArray(companiesData) ? companiesData : [])
       setApplications(Array.isArray(applicationsData) ? applicationsData : [])
+      setAnnouncements(Array.isArray(announcementsData) ? announcementsData : [])
     } catch (error) {
       console.log('Error:', error)
     } finally {
@@ -43,6 +52,50 @@ const StudentDashboard = () => {
   return (
     <Layout>
       <h2 className='page-title'>🏠 Student Dashboard</h2>
+
+      {/* Announcements Section */}
+      {announcements.length > 0 && (
+        <div className='section' style={{ marginBottom: '25px' }}>
+          <h3>📢 Announcements</h3>
+          {announcements.slice(0, 3).map(ann => (
+            <div
+              key={ann._id}
+              style={{
+                background: priorityColors[ann.priority]?.bg || '#f8f9fa',
+                border: `1px solid ${priorityColors[ann.priority]?.color}`,
+                borderLeft: `4px solid ${priorityColors[ann.priority]?.color}`,
+                borderRadius: '8px',
+                padding: '15px',
+                marginBottom: '10px'
+              }}
+            >
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '8px'
+              }}>
+                <h4 style={{ color: '#2c3e50', margin: 0 }}>
+                  {ann.title}
+                </h4>
+                <span style={{
+                  fontSize: '11px',
+                  color: priorityColors[ann.priority]?.color,
+                  fontWeight: 'bold'
+                }}>
+                  {priorityColors[ann.priority]?.label}
+                </span>
+              </div>
+              <p style={{ color: '#555', fontSize: '14px', marginBottom: '5px' }}>
+                {ann.message}
+              </p>
+              <p style={{ color: '#7f8c8d', fontSize: '12px' }}>
+                Posted by {ann.postedBy?.name} • {formatDate(ann.createdAt)}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Stats */}
       <div className='stats-container'>
@@ -88,6 +141,11 @@ const StudentDashboard = () => {
             </div>
           ))
         )}
+        <div style={{ marginTop: '15px' }}>
+          <Link to='/student/companies' className='action-btn'>
+            View All Companies →
+          </Link>
+        </div>
       </div>
 
     </Layout>

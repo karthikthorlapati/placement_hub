@@ -31,6 +31,10 @@ const companySchema = new mongoose.Schema({
     type: Date,
     required: true
   },
+  registrationLink: {
+    type: String,
+    default: ''
+  },
   status: {
     type: String,
     enum: ['upcoming', 'active', 'closed'],

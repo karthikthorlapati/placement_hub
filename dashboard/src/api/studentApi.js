@@ -61,6 +61,13 @@ export const studentApi = {
     return res.json()
   },
 
+  getAnnouncements: async () => {
+  const res = await fetch(`${API_URL}/announcements/student`, {
+    headers: getHeaders()
+  })
+  return res.json()
+},
+
   getNotifications: async () => {
     const res = await fetch(`${API_URL}/notifications`, {
       headers: getHeaders()

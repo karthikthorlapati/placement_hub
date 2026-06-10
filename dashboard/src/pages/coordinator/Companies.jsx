@@ -9,13 +9,14 @@ const CoordinatorCompanies = () => {
   const [formMsg, setFormMsg] = useState('')
   const [formErr, setFormErr] = useState('')
   const [form, setForm] = useState({
-    name: '',
-    role: '',
-    package: '',
-    minimumCgpa: '',
-    lastDate: '',
-    description: ''
-  })
+  name: '',
+  role: '',
+  package: '',
+  minimumCgpa: '',
+  lastDate: '',
+  description: '',
+  registrationLink: ''
+})
 
   useEffect(() => {
     loadCompanies()
@@ -42,14 +43,15 @@ const CoordinatorCompanies = () => {
     }
 
     try {
-      const res = await coordinatorApi.addCompany({
-        name: form.name,
-        role: form.role,
-        package: form.package,
-        minimumCgpa: parseFloat(form.minimumCgpa) || 0,
-        lastDate: form.lastDate,
-        description: form.description
-      })
+            const res = await coordinatorApi.addCompany({
+          name: form.name,
+          role: form.role,
+          package: form.package,
+          minimumCgpa: parseFloat(form.minimumCgpa) || 0,
+          lastDate: form.lastDate,
+          description: form.description,
+          registrationLink: form.registrationLink
+        })
 
       if (res.message === 'Company added successfully!') {
         setFormMsg('Company added successfully! ✅')
@@ -169,7 +171,15 @@ const CoordinatorCompanies = () => {
             onChange={e => setForm({...form, description: e.target.value})}
           />
         </div>
-
+          <div className='form-group'>
+  <label>Company Registration Link</label>
+  <input
+    type='url'
+    placeholder='e.g. https://company.com/apply'
+    value={form.registrationLink}
+    onChange={e => setForm({...form, registrationLink: e.target.value})}
+  />
+</div>
         <button className='btn-primary' onClick={handleAddCompany}>
           Add Company
         </button>

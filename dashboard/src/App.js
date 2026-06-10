@@ -3,6 +3,9 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import './styles/global.css'
 
+import CoordinatorAnnouncements from './pages/coordinator/Announcements'
+import HeadAnnouncements from './pages/head/Announcements'
+
 // Student Pages
 import StudentDashboard from './pages/student/Dashboard'
 import Companies from './pages/student/Companies'
@@ -152,6 +155,20 @@ const App = () => {
               <AdminApplications />
             </ProtectedRoute>
           } />
+
+          {/* Coordinator Announcements */}
+<Route path='/coordinator/announcements' element={
+  <ProtectedRoute role='coordinator'>
+    <CoordinatorAnnouncements />
+  </ProtectedRoute>
+} />
+
+{/* Head Announcements */}
+<Route path='/head/announcements' element={
+  <ProtectedRoute role='head'>
+    <HeadAnnouncements />
+  </ProtectedRoute>
+} />
 
         </Routes>
       </BrowserRouter>

@@ -9,6 +9,8 @@ const coordinatorRoutes = require('./routes/coordinator')
 const adminRoutes = require('./routes/admin')
 const headRoutes = require('./routes/head')
 const notificationRoutes = require('./routes/notification')
+const announcementRoutes = require('./routes/announcement')
+
 
 const app = express()
 app.use(express.json())
@@ -32,6 +34,8 @@ app.use('/api/coordinator', coordinatorRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/head', headRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/announcements', announcementRoutes)
+
 
 // Test route
 app.get('/', (req, res) => {

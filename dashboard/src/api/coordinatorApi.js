@@ -77,5 +77,29 @@ export const coordinatorApi = {
       }
     )
     return res.json()
-  }
+  },
+
+  getAnnouncements: async () => {
+  const res = await fetch(`${API_URL}/announcements/coordinator`, {
+    headers: getHeaders()
+  })
+  return res.json()
+},
+
+createAnnouncement: async (data) => {
+  const res = await fetch(`${API_URL}/announcements`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(data)
+  })
+  return res.json()
+},
+
+deleteAnnouncement: async (id) => {
+  const res = await fetch(`${API_URL}/announcements/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  })
+  return res.json()
+}
 }
