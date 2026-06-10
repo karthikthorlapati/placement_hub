@@ -10,21 +10,17 @@ const Notification = require('../models/Notification')
 // ✅ Get students by coordinator's department only
 router.get('/students', auth, async (req, res) => {
   try {
-    // Get coordinator's department
-    const coordinator = await User.findById(req.user.userId)
-    const department = coordinator.department
+    const students = await User.find({
+      role: 'student'
+    }).select('-password')
 
-    // Filter students by same department
-    const filter = { role: 'student' }
-    if (department && department !== '') {
-      filter.department = department
-    }
-
-    const students = await User.find(filter).select('-password')
     res.json(students)
   } catch (error) {
     console.log('REAL ERROR:', error)
-    res.status(500).json({ message: 'Server error', error: error.message })
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    })
   }
 })
 
