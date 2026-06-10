@@ -16,6 +16,14 @@ import Students from './pages/coordinator/Students'
 import CoordinatorCompanies from './pages/coordinator/Companies'
 import Report from './pages/coordinator/Report'
 
+// Head Pages
+import HeadDashboard from './pages/head/Dashboard'
+import HeadStudents from './pages/head/Students'
+import HeadCompanies from './pages/head/Companies'
+import HeadApplications from './pages/head/Applications'
+import HeadReport from './pages/head/Report'
+import Notify from './pages/head/Notify'
+
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard'
 import Users from './pages/admin/Users'
@@ -88,6 +96,38 @@ const App = () => {
           <Route path='/coordinator/report' element={
             <ProtectedRoute role='coordinator'>
               <Report />
+            </ProtectedRoute>
+          } />
+
+          {/* Head Routes */}
+          <Route path='/head/dashboard' element={
+            <ProtectedRoute role='head'>
+              <HeadDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path='/head/students' element={
+            <ProtectedRoute role='head'>
+              <HeadStudents />
+            </ProtectedRoute>
+          } />
+          <Route path='/head/companies' element={
+            <ProtectedRoute role='head'>
+              <HeadCompanies />
+            </ProtectedRoute>
+          } />
+          <Route path='/head/applications' element={
+            <ProtectedRoute role='head'>
+              <HeadApplications />
+            </ProtectedRoute>
+          } />
+          <Route path='/head/report' element={
+            <ProtectedRoute role='head'>
+              <HeadReport />
+            </ProtectedRoute>
+          } />
+          <Route path='/head/notify' element={
+            <ProtectedRoute role='head'>
+              <Notify />
             </ProtectedRoute>
           } />
 

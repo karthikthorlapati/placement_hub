@@ -17,6 +17,15 @@ const coordinatorLinks = [
   { path: '/coordinator/report', label: '📊 Reports' }
 ]
 
+const headLinks = [
+  { path: '/head/dashboard', label: '🏠 Dashboard' },
+  { path: '/head/students', label: '👨‍🎓 All Students' },
+  { path: '/head/companies', label: '🏢 All Companies' },
+  { path: '/head/applications', label: '📋 All Applications' },
+  { path: '/head/report', label: '📊 Reports' },
+  { path: '/head/notify', label: '📤 Notify Shortlisted' }
+]
+
 const adminLinks = [
   { path: '/admin/dashboard', label: '🏠 Dashboard' },
   { path: '/admin/users', label: '👥 All Users' },
@@ -30,6 +39,7 @@ const Sidebar = () => {
   const links =
     user?.role === 'student' ? studentLinks :
     user?.role === 'coordinator' ? coordinatorLinks :
+    user?.role === 'head' ? headLinks :
     adminLinks
 
   return (
