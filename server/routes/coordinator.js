@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const auth = require('../middleware/auth')
+const checkRole= require('../middleware/role')
 const Company = require('../models/Company')
 const Application = require('../models/Application')
 const User = require('../models/User')
