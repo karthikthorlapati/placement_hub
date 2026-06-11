@@ -11,11 +11,9 @@ router.get('/student', auth, async (req, res) => {
     const student = await User.findById(req.user.userId)
     const department = student.department
 
-    // Get announcements for student's department or all
     const announcements = await Announcement.find({
-      isActive: true,
       $or: [
-        { department: department },
+        { department: department.toUpperCase() },
         { department: 'all' }
       ]
     })
@@ -28,13 +26,13 @@ router.get('/student', auth, async (req, res) => {
   }
 })
 
-// ✅ Get all announcements for coordinator
+// ✅ Get announcements for coordinator
 router.get('/coordinator', auth, async (req, res) => {
   try {
     const coordinator = await User.findById(req.user.userId)
     const announcements = await Announcement.find({
       $or: [
-        { department: coordinator.department },
+        { department: coordinator.department.toUpperCase() },
         { department: 'all' }
       ]
     })
@@ -65,17 +63,30 @@ router.get('/all', auth,
   }
 )
 
-// ✅ Create announcement (coordinator/head/admin)
+// ✅ Create announcement
 router.post('/', auth,
   checkRole('coordinator', 'head', 'admin'),
   async (req, res) => {
     try {
-      const { title, message, department, priority } = req.body
+      const { title, message, department, expiryDate } = req.body
       const poster = await User.findById(req.user.userId)
 
       if (!title || !message) {
         return res.status(400).json({
           message: 'Title and message are required!'
+        })
+      }
+
+      if (!expiryDate) {
+        return res.status(400).json({
+          message: 'Expiry date is required!'
+        })
+      }
+
+      // Check expiry date is in future
+      if (new Date(expiryDate) <= new Date()) {
+        return res.status(400).json({
+          message: 'Expiry date must be in the future!'
         })
       }
 
@@ -85,7 +96,7 @@ router.post('/', auth,
         postedBy: req.user.userId,
         postedByRole: req.user.role,
         department: department || poster.department || 'all',
-        priority: priority || 'medium'
+        expiryDate: new Date(expiryDate)
       })
 
       await announcement.save()
@@ -102,36 +113,13 @@ router.post('/', auth,
   }
 )
 
-// ✅ Delete announcement
+// ✅ Delete announcement manually
 router.delete('/:id', auth,
   checkRole('coordinator', 'head', 'admin'),
   async (req, res) => {
     try {
       await Announcement.findByIdAndDelete(req.params.id)
       res.json({ message: 'Announcement deleted successfully!' })
-    } catch (error) {
-      res.status(500).json({
-        message: 'Server error',
-        error: error.message
-      })
-    }
-  }
-)
-
-// ✅ Toggle announcement active/inactive
-router.put('/:id', auth,
-  checkRole('coordinator', 'head', 'admin'),
-  async (req, res) => {
-    try {
-      const announcement = await Announcement.findByIdAndUpdate(
-        req.params.id,
-        { isActive: req.body.isActive },
-        { new: true }
-      )
-      res.json({
-        message: 'Announcement updated!',
-        announcement
-      })
     } catch (error) {
       res.status(500).json({
         message: 'Server error',

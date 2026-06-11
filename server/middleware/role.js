@@ -5,7 +5,7 @@ const checkRole = (...roles) => {
 
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
-        message: 'Access denied! You do not have permission!'
+        message: `Access denied! This action requires: ${roles.join(' or ')} role!`
       })
     }
     next()

@@ -24,9 +24,10 @@ const companySchema = new mongoose.Schema({
     max: 10
   },
   department: {
-    type: String,
-    default: 'all'
-  },
+  type: String,
+  default: 'all',
+  set: (val) => val && val !== 'all' ? val.toUpperCase().trim() : 'all'
+},
   lastDate: {
     type: Date,
     required: true

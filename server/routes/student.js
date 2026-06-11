@@ -10,12 +10,12 @@ const bcrypt = require('bcryptjs')
 // ✅ Get all active companies
 // ✅ Get all active companies with eligibility check
 // ✅ Get active companies for student's department
+// ✅ Get active companies for student
 router.get('/companies', auth, async (req, res) => {
   try {
     const student = await User.findById(req.user.userId)
-    const department = student.department
+    const department = student.department.toUpperCase()
 
-    // Get companies for student's department or all departments
     const companies = await Company.find({
       status: 'active',
       $or: [
@@ -26,7 +26,18 @@ router.get('/companies', auth, async (req, res) => {
 
     // Add eligibility flag
     const companiesWithEligibility = companies.map(company => ({
-      ...company._doc,
+      _id: company._id,
+      name: company.name,
+      description: company.description,
+      role: company.role,
+      package: company.package,
+      minimumCgpa: company.minimumCgpa,
+      department: company.department,
+      lastDate: company.lastDate,
+      registrationLink: company.registrationLink,
+      status: company.status,
+      createdBy: company.createdBy,
+      createdAt: company.createdAt,
       isEligible: student.cgpa >= company.minimumCgpa
     }))
 

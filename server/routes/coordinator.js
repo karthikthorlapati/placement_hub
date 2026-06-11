@@ -32,7 +32,8 @@ const students = await User.find(filter).select('-password')
 
 // Add a new company
 // ✅ Add company with coordinator's department
-router.post('/companies', auth, async (req, res) => {
+// ✅ Add company — coordinator only NOT head
+router.post('/companies', auth, checkRole('coordinator'), async (req, res) => {
   try {
     const coordinator = await User.findById(req.user.userId)
     const {
@@ -41,7 +42,8 @@ router.post('/companies', auth, async (req, res) => {
       role,
       package: pkg,
       minimumCgpa,
-      lastDate
+      lastDate,
+      registrationLink
     } = req.body
 
     const company = new Company({
@@ -52,6 +54,7 @@ router.post('/companies', auth, async (req, res) => {
       minimumCgpa: minimumCgpa || 0,
       department: coordinator.department || 'all',
       lastDate,
+      registrationLink: registrationLink || '',
       createdBy: req.user.userId
     })
 
@@ -62,7 +65,10 @@ router.post('/companies', auth, async (req, res) => {
     })
   } catch (error) {
     console.log('REAL ERROR:', error)
-    res.status(500).json({ message: 'Server error', error: error.message })
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    })
   }
 })
 
@@ -89,51 +95,38 @@ router.get('/companies', auth, async (req, res) => {
 })
 
 // Update company
-router.put('/companies/:companyId', auth, async (req, res) => {
+// ✅ Update company — coordinator only
+router.put('/companies/:companyId', auth,
+  checkRole('coordinator'),
+  async (req, res) => {
   try {
     const company = await Company.findByIdAndUpdate(
       req.params.companyId,
       { status: req.body.status },
       { new: true }
     )
-
     if (!company) {
-      return res.status(404).json({
-        message: 'Company not found'
-      })
+      return res.status(404).json({ message: 'Company not found' })
     }
-
-    res.json({
-      message: 'Company updated successfully!',
-      company
-    })
-
+    res.json({ message: 'Company updated successfully!', company })
   } catch (error) {
-    console.log("REAL ERROR:", error)
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    })
+    res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
 
-// Delete company
-router.delete('/companies/:companyId', auth, async (req, res) => {
+// ✅ Delete company — coordinator only
+router.delete('/companies/:companyId', auth,
+  checkRole('coordinator'),
+  async (req, res) => {
   try {
     await Company.findByIdAndDelete(req.params.companyId)
-
-    res.json({
-      message: 'Company deleted successfully!'
-    })
-
+    res.json({ message: 'Company deleted successfully!' })
   } catch (error) {
-    console.log("REAL ERROR:", error)
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    })
+    res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
+
+
 
 // Get applications
 router.get('/applications/:companyId', auth, async (req, res) => {

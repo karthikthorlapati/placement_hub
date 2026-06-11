@@ -20,9 +20,10 @@ const userSchema = new mongoose.Schema({
     required: true
   },
   department: {
-    type: String,
-    default: ''
-  },
+  type: String,
+  default: '',
+  set: (val) => val ? val.toUpperCase().trim() : ''
+},
   rollNumber: {
     type: String,
     default: ''
