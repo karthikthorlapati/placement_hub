@@ -14,17 +14,16 @@ const bcrypt = require('bcryptjs')
 router.get('/companies', auth, async (req, res) => {
   try {
     const student = await User.findById(req.user.userId)
-    const department = student.department.toUpperCase()
+    const department = student.department.toUpperCase().trim()
 
     const companies = await Company.find({
       status: 'active',
       $or: [
-        { department: department },
+        { department: { $regex: new RegExp(`^${department}$`, 'i') } },
         { department: 'all' }
       ]
     })
 
-    // Add eligibility flag
     const companiesWithEligibility = companies.map(company => ({
       _id: company._id,
       name: company.name,

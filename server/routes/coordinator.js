@@ -11,79 +11,87 @@ const Notification = require('../models/Notification')
 // ✅ Get students by coordinator's department only
 router.get('/students', auth, async (req, res) => {
   try {
-const coordinator = await User.findById(req.user.userId)
-const department = coordinator.department
+    const coordinator = await User.findById(req.user.userId)
+    const department = coordinator.department.toUpperCase().trim()
 
-const filter = { role: 'student' }
+    const students = await User.find({
+      role: 'student',
+      department: { $regex: new RegExp(`^${department}$`, 'i') }
+    }).select('-password')
 
-if (department && department !== '') {
-  filter.department = department
-}
-
-const students = await User.find(filter).select('-password')
     res.json(students)
   } catch (error) {
     console.log('REAL ERROR:', error)
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    })
+    res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
-
 // Add a new company
-// ✅ Add company with coordinator's department
-// ✅ Add company — coordinator only NOT head
-router.post('/companies', auth, async (req, res) => {
-  try {
-    const coordinator = await User.findById(req.user.userId)
-    const {
-      name,
-      description,
-      role,
-      package: pkg,
-      minimumCgpa,
-      lastDate,
-      registrationLink
-    } = req.body
 
-    const company = new Company({
-      name,
-      description,
-      role,
-      package: pkg,
-      minimumCgpa: minimumCgpa || 0,
-      department: coordinator.department || 'all',
-      lastDate,
-      registrationLink: registrationLink || '',
-      createdBy: req.user.userId
-    })
 
-    await company.save()
-    res.status(201).json({
-      message: 'Company added successfully!',
-      company
-    })
-  } catch (error) {
-    console.log('REAL ERROR:', error)
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    })
+// ✅ Add company — coordinator OR head
+router.post('/companies', auth,
+  checkRole('coordinator', 'head'),
+  async (req, res) => {
+    try {
+      const poster = await User.findById(req.user.userId)
+      const {
+        name,
+        description,
+        role,
+        package: pkg,
+        minimumCgpa,
+        lastDate,
+        registrationLink,
+        department
+      } = req.body
+
+      // Coordinator → adds for their department only
+      // Head → can choose any department or all
+      let companyDepartment
+      if (poster.role === 'coordinator') {
+        companyDepartment = poster.department.toUpperCase().trim()
+      } else if (poster.role === 'head') {
+        companyDepartment = department ?
+          department.toUpperCase().trim() : 'all'
+      }
+
+      const company = new Company({
+        name,
+        description,
+        role,
+        package: pkg,
+        minimumCgpa: minimumCgpa || 0,
+        department: companyDepartment,
+        lastDate,
+        registrationLink: registrationLink || '',
+        createdBy: req.user.userId
+      })
+
+      await company.save()
+      res.status(201).json({
+        message: 'Company added successfully!',
+        company
+      })
+    } catch (error) {
+      console.log('REAL ERROR:', error)
+      res.status(500).json({
+        message: 'Server error',
+        error: error.message
+      })
+    }
   }
-})
+)
 
 // Get all companies
 // ✅ Get companies by coordinator's department
 router.get('/companies', auth, async (req, res) => {
   try {
     const coordinator = await User.findById(req.user.userId)
-    const department = coordinator.department
+    const department = coordinator.department.toUpperCase().trim()
 
-    // Show companies for their department or all departments
     const companies = await Company.find({
       $or: [
-        { department: department },
+        { department: { $regex: new RegExp(`^${department}$`, 'i') } },
         { department: 'all' }
       ]
     })
@@ -97,23 +105,38 @@ router.get('/companies', auth, async (req, res) => {
 
 // Update company
 // ✅ Update company — coordinator only
+// ✅ Update company — coordinator or head
 router.put('/companies/:companyId', auth,
-  checkRole('coordinator'),
+  checkRole('coordinator', 'head'),
   async (req, res) => {
-  try {
-    const company = await Company.findByIdAndUpdate(
-      req.params.companyId,
-      { status: req.body.status },
-      { new: true }
-    )
-    if (!company) {
-      return res.status(404).json({ message: 'Company not found' })
+    try {
+      const company = await Company.findByIdAndUpdate(
+        req.params.companyId,
+        { status: req.body.status },
+        { new: true }
+      )
+      if (!company) {
+        return res.status(404).json({ message: 'Company not found' })
+      }
+      res.json({ message: 'Company updated!', company })
+    } catch (error) {
+      res.status(500).json({ message: 'Server error', error: error.message })
     }
-    res.json({ message: 'Company updated successfully!', company })
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message })
   }
-})
+)
+
+// ✅ Delete company — coordinator or head
+router.delete('/companies/:companyId', auth,
+  checkRole('coordinator', 'head'),
+  async (req, res) => {
+    try {
+      await Company.findByIdAndDelete(req.params.companyId)
+      res.json({ message: 'Company deleted successfully!' })
+    } catch (error) {
+      res.status(500).json({ message: 'Server error', error: error.message })
+    }
+  }
+)
 
 // ✅ Delete company — coordinator only
 router.delete('/companies/:companyId', auth,
@@ -207,14 +230,13 @@ router.get('/stats', auth, async (req, res) => {
 router.get('/company-report/:companyId', auth, async (req, res) => {
   try {
     const coordinator = await User.findById(req.user.userId)
-    const department = coordinator.department
+    const department = coordinator.department.toUpperCase().trim()
 
-    // Get students from coordinator's department only
-    const filter = { role: 'student' }
-    if (department && department !== '') {
-      filter.department = department
-    }
-    const allStudents = await User.find(filter).select('-password')
+    // Get students from coordinator's department
+    const allStudents = await User.find({
+      role: 'student',
+      department: { $regex: new RegExp(`^${department}$`, 'i') }
+    }).select('-password')
 
     const applications = await Application.find({
       company: req.params.companyId
@@ -223,10 +245,9 @@ router.get('/company-report/:companyId', auth, async (req, res) => {
       select: 'name email department rollNumber phone cgpa'
     })
 
-    // Filter valid + same department applications
     const validApplications = applications.filter(
       app => app.student !== null &&
-      (department === '' || app.student.department === department)
+      app.student.department.toUpperCase() === department
     )
 
     const appliedStudentIds = validApplications.map(

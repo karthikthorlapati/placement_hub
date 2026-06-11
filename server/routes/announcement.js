@@ -6,14 +6,36 @@ const Announcement = require('../models/Announcement')
 const User = require('../models/User')
 
 // ✅ Get announcements for student
+// Student announcements
 router.get('/student', auth, async (req, res) => {
   try {
     const student = await User.findById(req.user.userId)
-    const department = student.department
+    const department = student.department.toUpperCase().trim()
 
     const announcements = await Announcement.find({
       $or: [
-        { department: department.toUpperCase() },
+        { department: { $regex: new RegExp(`^${department}$`, 'i') } },
+        { department: 'all' }
+      ]
+    })
+    .populate('postedBy', 'name role')
+    .sort({ createdAt: -1 })
+
+    res.json(announcements)
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+})
+
+// Coordinator announcements
+router.get('/coordinator', auth, async (req, res) => {
+  try {
+    const coordinator = await User.findById(req.user.userId)
+    const department = coordinator.department.toUpperCase().trim()
+
+    const announcements = await Announcement.find({
+      $or: [
+        { department: { $regex: new RegExp(`^${department}$`, 'i') } },
         { department: 'all' }
       ]
     })
