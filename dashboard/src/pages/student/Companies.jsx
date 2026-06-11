@@ -232,7 +232,7 @@ const Companies = () => {
                       marginTop: '5px'
                     }}
                   >
-                    🔗 External Registration Link
+                    🔗 Register on Company Site
                   </a>
                 )}
               </div>

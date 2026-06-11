@@ -33,7 +33,7 @@ const students = await User.find(filter).select('-password')
 // Add a new company
 // ✅ Add company with coordinator's department
 // ✅ Add company — coordinator only NOT head
-router.post('/companies', auth, checkRole('coordinator'), async (req, res) => {
+router.post('/companies', auth, async (req, res) => {
   try {
     const coordinator = await User.findById(req.user.userId)
     const {
