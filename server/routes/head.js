@@ -38,14 +38,21 @@ const upload = multer({
 })
 
 // ✅ Get all departments
+// ✅ Get unique departments (no duplicates)
 router.get('/departments', auth, checkRole('head', 'admin'),
   async (req, res) => {
     try {
       const departments = await User.distinct('department', {
         role: 'student',
-        department: { $ne: '' }
+        department: { $ne: '', $ne: null }
       })
-      res.json(departments)
+
+      // Normalize to uppercase and remove duplicates
+      const normalized = [...new Set(
+        departments.map(d => d.toUpperCase().trim())
+      )]
+
+      res.json(normalized.sort())
     } catch (error) {
       res.status(500).json({ message: 'Server error', error: error.message })
     }
@@ -70,6 +77,7 @@ router.get('/students', auth, checkRole('head', 'admin'),
 )
 
 // ✅ Get all companies (all departments)
+// ✅ Get all companies
 router.get('/companies', auth, checkRole('head', 'admin'),
   async (req, res) => {
     try {

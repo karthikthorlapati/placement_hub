@@ -11,16 +11,20 @@ const bcrypt = require('bcryptjs')
 // ✅ Get all active companies with eligibility check
 // ✅ Get active companies for student's department
 // ✅ Get active companies for student
+// ✅ Get active companies for student
+// ✅ Get active companies — exclude expired
 router.get('/companies', auth, async (req, res) => {
   try {
     const student = await User.findById(req.user.userId)
     const department = student.department.toUpperCase().trim()
+    const today = new Date()
 
     const companies = await Company.find({
       status: 'active',
+      lastDate: { $gte: today },  // ✅ Only future dates
       $or: [
-        { department: { $regex: new RegExp(`^${department}$`, 'i') } },
-        { department: 'all' }
+        { department: department },
+        { department: { $in: ['all', 'ALL', 'All'] } }
       ]
     })
 
@@ -48,15 +52,14 @@ router.get('/companies', auth, async (req, res) => {
 })
 // ✅ Apply for a company
 // ✅ Apply for a company with CGPA check
+// ✅ Apply for company with notification
 router.post('/apply/:companyId', auth, async (req, res) => {
   try {
-    // Get company details
     const company = await Company.findById(req.params.companyId)
     if (!company) {
       return res.status(404).json({ message: 'Company not found!' })
     }
 
-    // Get student profile
     const student = await User.findById(req.user.userId)
 
     // Check CGPA eligibility
@@ -79,13 +82,22 @@ router.post('/apply/:companyId', auth, async (req, res) => {
       })
     }
 
-    // Create new application
+    // Create application
     const application = new Application({
       student: req.user.userId,
       company: req.params.companyId
     })
 
     await application.save()
+
+    // ✅ Send notification to student
+    const notification = new Notification({
+      user: req.user.userId,
+      message: `✅ You have successfully applied for ${company.name}!`,
+      type: 'application'
+    })
+    await notification.save()
+
     res.status(201).json({ message: 'Applied successfully!' })
 
   } catch (error) {
@@ -96,21 +108,59 @@ router.post('/apply/:companyId', auth, async (req, res) => {
 
 // ✅ Get my applications
 // ✅ Get my applications
+// ✅ Get my applications — show all including expired
 router.get('/my-applications', auth, async (req, res) => {
   try {
     const applications = await Application.find({
       student: req.user.userId
     }).populate('company')
 
-    // Filter out null companies
+    // Show all applications even if company is expired
     const validApplications = applications.filter(
-      app => app.company !== null && app.company !== undefined
+      app => app.company !== null
     )
 
     res.json(validApplications)
 
   } catch (error) {
     console.log('Error:', error)
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+})
+
+
+// ✅ Delete student — head can delete any, coordinator can delete own department
+router.delete('/delete/:userId', auth, async (req, res) => {
+  try {
+    const requester = await User.findById(req.user.userId)
+    const targetStudent = await User.findById(req.params.userId)
+
+    if (!targetStudent || targetStudent.role !== 'student') {
+      return res.status(404).json({ message: 'Student not found!' })
+    }
+
+    // Head can delete any student
+    if (requester.role === 'head') {
+      await User.findByIdAndDelete(req.params.userId)
+      return res.json({ message: 'Student deleted successfully!' })
+    }
+
+    // Coordinator can only delete students from their department
+    if (requester.role === 'coordinator') {
+      if (targetStudent.department !== requester.department) {
+        return res.status(403).json({
+          message: 'You can only delete students from your department!'
+        })
+      }
+      await User.findByIdAndDelete(req.params.userId)
+      return res.json({ message: 'Student deleted successfully!' })
+    }
+
+    return res.status(403).json({
+      message: 'Only head or coordinator can delete students!'
+    })
+
+  } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })

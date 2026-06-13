@@ -28,6 +28,26 @@ router.get('/students', auth, async (req, res) => {
 // Add a new company
 
 
+// ✅ Get unique departments for coordinator
+router.get('/departments', auth,
+  async (req, res) => {
+    try {
+      const departments = await User.distinct('department', {
+        role: 'student',
+        department: { $ne: '', $ne: null }
+      })
+
+      const normalized = [...new Set(
+        departments.map(d => d.toUpperCase().trim())
+      )]
+
+      res.json(normalized.sort())
+    } catch (error) {
+      res.status(500).json({ message: 'Server error', error: error.message })
+    }
+  }
+)
+
 // ✅ Add company — coordinator OR head
 router.post('/companies', auth,
   checkRole('coordinator', 'head'),
@@ -84,15 +104,17 @@ router.post('/companies', auth,
 
 // Get all companies
 // ✅ Get companies by coordinator's department
+// ✅ Get companies for coordinator
 router.get('/companies', auth, async (req, res) => {
   try {
     const coordinator = await User.findById(req.user.userId)
     const department = coordinator.department.toUpperCase().trim()
 
+    // Show companies for their department OR all departments
     const companies = await Company.find({
       $or: [
-        { department: { $regex: new RegExp(`^${department}$`, 'i') } },
-        { department: 'all' }
+        { department: department },
+        { department: { $in: ['all', 'ALL', 'All'] } }
       ]
     })
 
