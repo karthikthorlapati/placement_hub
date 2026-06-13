@@ -48,19 +48,29 @@ const Companies = () => {
     }
   }
 
+  // Helper to check if company is expired
+  const isExpired = (lastDate) => {
+    const today = new Date()
+    const deadline = new Date(lastDate)
+    return deadline < today
+  }
+
+  // In component, filter out expired companies
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase()
     applyFilters(value, filterCgpa)
   }
 
-  const handleCgpaFilter = (e) => {
-    const value = e.target.value
+  const handleCgpaFilter=(e)=>{
+    const value=e.target.value
     setFilterCgpa(value)
-    applyFilters('', value)
+    applyFilters('',value)
   }
 
   const applyFilters = (search, cgpa) => {
-    let result = companies
+    // Filter out expired companies first
+    let result = companies.filter(c => !isExpired(c.lastDate))
+
     if (search) {
       result = result.filter(c =>
         c.name.toLowerCase().includes(search) ||

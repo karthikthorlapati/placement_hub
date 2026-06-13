@@ -20,6 +20,17 @@ export const coordinatorApi = {
     return res.json()
   },
 
+  deleteStudent: async (studentId) => {
+    const res = await fetch(
+      `${API_URL}/student/delete/${studentId}`,
+      {
+        method: 'DELETE',
+        headers: getHeaders()
+      }
+    )
+    return res.json()
+  },
+
   getCompanies: async () => {
     const res = await fetch(`${API_URL}/coordinator/companies`, {
       headers: getHeaders()

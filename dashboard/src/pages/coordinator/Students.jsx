@@ -6,6 +6,7 @@ const Students = () => {
   const [students, setStudents] = useState([])
   const [filtered, setFiltered] = useState([])
   const [loading, setLoading] = useState(true)
+  const [deleteMsg, setDeleteMsg] = useState('')
 
   useEffect(() => {
     loadStudents()
@@ -28,10 +29,27 @@ const Students = () => {
     const result = students.filter(s =>
       s.name.toLowerCase().includes(value) ||
       s.email.toLowerCase().includes(value) ||
-      (s.department && s.department.toLowerCase().includes(value)) ||
-      (s.rollNumber && s.rollNumber.toLowerCase().includes(value))
+      (s.rollNumber && s.rollNumber.toLowerCase().includes(value)) ||
+      (s.department && s.department.toLowerCase().includes(value))
     )
     setFiltered(result)
+  }
+
+  const handleDelete = async (studentId, studentName) => {
+    if (!window.confirm(
+      `Are you sure you want to delete ${studentName}?`
+    )) return
+
+    try {
+      const res = await coordinatorApi.deleteStudent(studentId)
+      if (res.message) {
+        setDeleteMsg(`${studentName} deleted successfully! ✅`)
+        loadStudents()
+        setTimeout(() => setDeleteMsg(''), 3000)
+      }
+    } catch (error) {
+      console.log('Error:', error)
+    }
   }
 
   if (loading) return (
@@ -42,21 +60,35 @@ const Students = () => {
 
   return (
     <Layout>
-      <h2 className='page-title'>👨‍🎓 All Students</h2>
+      <h2 className='page-title'>👨‍🎓 Department Students</h2>
+
+      {deleteMsg && <div className='success-msg'>{deleteMsg}</div>}
 
       {/* Search */}
-      <div className='search-bar'>
+      <div className='search-bar' style={{ marginBottom: '20px' }}>
         <input
           type='text'
-          placeholder='Search by name, email, department...'
+          placeholder='Search by name, email, roll number, department...'
           onChange={handleSearch}
         />
       </div>
 
+      {/* Stats */}
+      <div style={{
+        background: '#3498db',
+        color: 'white',
+        padding: '12px 20px',
+        borderRadius: '8px',
+        marginBottom: '20px',
+        display: 'inline-block'
+      }}>
+        <strong>Total: {filtered.length} Students</strong>
+      </div>
+
+      {/* Students Table */}
       {filtered.length === 0 ? (
         <div className='empty-state'>
           <h3>No Students Found!</h3>
-          <p>No students registered yet.</p>
         </div>
       ) : (
         <div className='section'>
@@ -69,6 +101,7 @@ const Students = () => {
                 <th>Roll Number</th>
                 <th>CGPA</th>
                 <th>Phone</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -80,6 +113,17 @@ const Students = () => {
                   <td>{student.rollNumber || 'N/A'}</td>
                   <td>{student.cgpa || 'N/A'}</td>
                   <td>{student.phone || 'N/A'}</td>
+                  <td>
+                    <button
+                      className='btn-danger'
+                      onClick={() => handleDelete(
+                        student._id,
+                        student.name
+                      )}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
