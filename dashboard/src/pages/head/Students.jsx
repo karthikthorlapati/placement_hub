@@ -8,6 +8,7 @@ const HeadStudents = () => {
   const [departments, setDepartments] = useState([])
   const [selectedDept, setSelectedDept] = useState('all')
   const [loading, setLoading] = useState(true)
+  const [deleteMsg, setDeleteMsg] = useState('')
 
   useEffect(() => {
     loadDepartments()
@@ -53,9 +54,34 @@ const HeadStudents = () => {
     setFiltered(result)
   }
 
+  const handleDelete = async (studentId, studentName) => {
+    if (!window.confirm(
+      `Are you sure you want to delete ${studentName}?`
+    )) return
+
+    try {
+      const res = await headApi.deleteStudent(studentId)
+      if (res.message) {
+        setDeleteMsg(`${studentName} deleted successfully! ✅`)
+        loadStudents(selectedDept)
+        setTimeout(() => setDeleteMsg(''), 3000)
+      }
+    } catch (error) {
+      console.log('Error:', error)
+    }
+  }
+
+  if (loading) return (
+    <Layout>
+      <div className='loading'>Loading...</div>
+    </Layout>
+  )
+
   return (
     <Layout>
       <h2 className='page-title'>👨‍🎓 All Students</h2>
+
+      {deleteMsg && <div className='success-msg'>{deleteMsg}</div>}
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
@@ -94,9 +120,7 @@ const HeadStudents = () => {
       </div>
 
       {/* Students Table */}
-      {loading ? (
-        <div className='loading'>Loading...</div>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className='empty-state'>
           <h3>No Students Found!</h3>
         </div>
@@ -111,6 +135,7 @@ const HeadStudents = () => {
                 <th>Roll Number</th>
                 <th>CGPA</th>
                 <th>Phone</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -122,6 +147,17 @@ const HeadStudents = () => {
                   <td>{student.rollNumber || 'N/A'}</td>
                   <td>{student.cgpa || 'N/A'}</td>
                   <td>{student.phone || 'N/A'}</td>
+                  <td>
+                    <button
+                      className='btn-danger'
+                      onClick={() => handleDelete(
+                        student._id,
+                        student.name
+                      )}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

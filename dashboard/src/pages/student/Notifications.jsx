@@ -14,7 +14,12 @@ const Notifications = () => {
   const loadNotifications = async () => {
     try {
       const data = await studentApi.getNotifications()
-      setNotifications(Array.isArray(data) ? data : [])
+      // Sort by newest first
+      const sorted = Array.isArray(data)
+        ? data.sort((a, b) =>
+          new Date(b.createdAt) - new Date(a.createdAt))
+        : []
+      setNotifications(sorted)
     } catch (error) {
       console.log('Error:', error)
     } finally {
@@ -48,6 +53,8 @@ const Notifications = () => {
     </Layout>
   )
 
+  const unreadCount = notifications.filter(n => !n.isRead).length
+
   return (
     <Layout>
       <div style={{
@@ -59,9 +66,9 @@ const Notifications = () => {
         <h2 className='page-title' style={{ margin: 0 }}>
           🔔 Notifications
         </h2>
-        {notifications.length > 0 && (
+        {unreadCount > 0 && (
           <button className='btn-primary' onClick={markAllRead}>
-            Mark All as Read
+            Mark All as Read ({unreadCount})
           </button>
         )}
       </div>
@@ -69,8 +76,8 @@ const Notifications = () => {
       {notifications.length === 0 ? (
         <div className='empty-state'>
           <h3>No Notifications Yet!</h3>
-          <p>You will receive notifications when
-            your application status changes.</p>
+          <p>You will receive notifications when you apply for
+            companies or when your application status changes.</p>
         </div>
       ) : (
         notifications.map(notification => (
@@ -79,26 +86,33 @@ const Notifications = () => {
             onClick={() => !notification.isRead && markRead(notification._id)}
             style={{
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               gap: '15px',
               padding: '15px 20px',
               borderRadius: '10px',
               marginBottom: '10px',
-              cursor: 'pointer',
+              cursor: notification.isRead ? 'default' : 'pointer',
               background: notification.isRead ? 'white' : '#eaf4ff',
               border: notification.isRead ?
                 '1px solid #ddd' : '1px solid #3498db',
-              position: 'relative'
+              transition: 'all 0.2s'
             }}
           >
-            <span style={{ fontSize: '25px' }}>
+            <span style={{ fontSize: '25px', minWidth: '30px' }}>
               {notification.type === 'application' ? '📋' : '🔔'}
             </span>
             <div style={{ flex: 1 }}>
-              <p style={{ color: '#2c3e50', marginBottom: '4px' }}>
+              <p style={{
+                color: '#2c3e50',
+                marginBottom: '4px',
+                fontWeight: notification.isRead ? 'normal' : 'bold'
+              }}>
                 {notification.message}
               </p>
-              <span style={{ color: '#7f8c8d', fontSize: '12px' }}>
+              <span style={{
+                color: '#7f8c8d',
+                fontSize: '12px'
+              }}>
                 {formatDateTime(notification.createdAt)}
               </span>
             </div>
@@ -107,12 +121,14 @@ const Notifications = () => {
                 width: '10px',
                 height: '10px',
                 background: '#3498db',
-                borderRadius: '50%'
+                borderRadius: '50%',
+                minWidth: '10px'
               }} />
             )}
           </div>
         ))
       )}
+
     </Layout>
   )
 }

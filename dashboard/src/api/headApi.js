@@ -28,6 +28,17 @@ export const headApi = {
     return res.json()
   },
 
+  deleteStudent: async (studentId) => {
+    const res = await fetch(
+      `${API_URL}/student/delete/${studentId}`,
+      {
+        method: 'DELETE',
+        headers: getHeaders()
+      }
+    )
+    return res.json()
+  },
+
   getCompanies: async () => {
     const res = await fetch(`${API_URL}/head/companies`, {
       headers: getHeaders()
