@@ -7,7 +7,6 @@ const Application = require('../models/Application')
 const User = require('../models/User')
 const Notification = require('../models/Notification')
 
-// Get all students
 // ✅ Get students by coordinator's department only
 router.get('/students', auth, async (req, res) => {
   try {
@@ -102,9 +101,7 @@ router.post('/companies', auth,
   }
 )
 
-// Get all companies
 // ✅ Get companies by coordinator's department
-// ✅ Get companies for coordinator
 router.get('/companies', auth, async (req, res) => {
   try {
     const coordinator = await User.findById(req.user.userId)
@@ -125,8 +122,6 @@ router.get('/companies', auth, async (req, res) => {
   }
 })
 
-// Update company
-// ✅ Update company — coordinator only
 // ✅ Update company — coordinator or head
 router.put('/companies/:companyId', auth,
   checkRole('coordinator', 'head'),
@@ -192,7 +187,6 @@ router.get('/applications/:companyId', auth, async (req, res) => {
   }
 })
 
-// Update application
 // ✅ Update application status + send notification
 router.put('/applications/:applicationId', auth, async (req, res) => {
   try {
