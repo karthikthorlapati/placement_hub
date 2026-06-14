@@ -64,8 +64,6 @@ router.post('/companies', auth,
         department
       } = req.body
 
-      // Coordinator → adds for their department only
-      // Head → can choose any department or all
       let companyDepartment
       if (poster.role === 'coordinator') {
         companyDepartment = poster.department.toUpperCase().trim()

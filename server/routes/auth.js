@@ -88,11 +88,12 @@ router.post('/login', async (req, res) => {
     }
 
     // Create JWT token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    )
+    // Create JWT token
+const token = jwt.sign(
+  { userId: user._id, role: user.role },  // ✅ role must be here!
+  process.env.JWT_SECRET,
+  { expiresIn: '7d' }
+)
 
     res.json({
       message: 'Login successful',

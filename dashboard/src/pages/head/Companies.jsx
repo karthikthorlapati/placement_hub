@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import Layout from '../../components/Layout'
-import { coordinatorApi } from '../../api'
+import { headApi } from '../../api'
 import { formatDate } from '../../utils/helpers'
 
 const HeadCompanies = () => {
@@ -25,7 +25,7 @@ const HeadCompanies = () => {
 
   const loadCompanies = async () => {
     try {
-      const data = await coordinatorApi.getCompanies()
+      const data = await headApi.getCompanies()
       setCompanies(Array.isArray(data) ? data : [])
     } catch (error) {
       console.log('Error:', error)
@@ -44,7 +44,7 @@ const HeadCompanies = () => {
     }
 
     try {
-      const res = await coordinatorApi.addCompany({
+      const res = await headApi.addCompany({
         name: form.name,
         role: form.role,
         package: form.package,
@@ -69,16 +69,17 @@ const HeadCompanies = () => {
         })
         loadCompanies()
       } else {
-        setFormErr(res.message)
+        setFormErr(res.message || 'Failed to add company')
       }
     } catch (error) {
       setFormErr('Something went wrong!')
+      console.log('Error:', error)
     }
   }
 
   const handleUpdateStatus = async (companyId, status) => {
     try {
-      await coordinatorApi.updateCompany(companyId, { status })
+      await headApi.updateCompany(companyId, { status })
       loadCompanies()
     } catch (error) {
       console.log('Error:', error)
@@ -88,7 +89,7 @@ const HeadCompanies = () => {
   const handleDelete = async (companyId) => {
     if (!window.confirm('Delete this company?')) return
     try {
-      await coordinatorApi.deleteCompany(companyId)
+      await headApi.deleteCompany(companyId)
       loadCompanies()
     } catch (error) {
       console.log('Error:', error)
@@ -169,7 +170,6 @@ const HeadCompanies = () => {
           </div>
         </div>
 
-        {/* Department Selection - Head Only Feature */}
         <div className='form-group'>
           <label>Target Department *</label>
           <select
@@ -230,33 +230,29 @@ const HeadCompanies = () => {
                     fontSize: '12px',
                     color: '#555'
                   }}>
-                    {company.department === 'all' ?
-                      '🌍 All Depts' : company.department}
+                    {company.department === 'all' ? '🌍 All Depts' : company.department}
                   </span>
                   <span className={`badge badge-${company.status}`}>
                     {company.status}
                   </span>
                 </div>
               </div>
+
               <div className='company-card-details'>
                 <p>💼 <strong>Role:</strong> {company.role}</p>
                 <p>💰 <strong>Package:</strong> {company.package}</p>
                 <p>🎓 <strong>Min CGPA:</strong> {company.minimumCgpa || 0}</p>
                 <p>📅 <strong>Last Date:</strong> {formatDate(company.lastDate)}</p>
-                {company.registrationLink && (
-                  <p>
-                    🔗 <strong>Registration:</strong>{' '}
-                    <a  // <-- Fixed the missing tag syntax here
-                      href={company.registrationLink}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      style={{ color: '#9b59b6', textDecoration: 'none' }}
-                    >
-                      {company.registrationLink}
-                    </a>
-                  </p>
+                
+                {company.description && (
+                  <p>📝 <strong>Description:</strong> {company.description}</p>
+                )}
+                
+                {company.registrationLink && company.registrationLink !== '' && (
+                  <p>🔗 <strong>Registration:</strong> <a href={company.registrationLink} target='_blank' rel='noopener noreferrer' style={{ color: '#9b59b6' }}>{company.registrationLink}</a></p>
                 )}
               </div>
+
               <div className='company-card-actions'>
                 <button
                   className='btn-success'

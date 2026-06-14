@@ -46,6 +46,38 @@ export const headApi = {
     return res.json()
   },
 
+  addCompany: async (data) => {
+    const res = await fetch(`${API_URL}/coordinator/companies`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    })
+    return res.json()
+  },
+
+  updateCompany: async (companyId, data) => {
+    const res = await fetch(
+      `${API_URL}/coordinator/companies/${companyId}`,
+      {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }
+    )
+    return res.json()
+  },
+
+  deleteCompany: async (companyId) => {
+    const res = await fetch(
+      `${API_URL}/coordinator/companies/${companyId}`,
+      {
+        method: 'DELETE',
+        headers: getHeaders()
+      }
+    )
+    return res.json()
+  },
+
   getApplications: async () => {
     const res = await fetch(`${API_URL}/head/applications`, {
       headers: getHeaders()
@@ -78,28 +110,27 @@ export const headApi = {
     return res.json()
   },
 
-getAnnouncements: async () => {
-  const res = await fetch(`${API_URL}/announcements/all`, {
-    headers: getHeaders()
-  })
-  return res.json()
-},
+  getAnnouncements: async () => {
+    const res = await fetch(`${API_URL}/announcements/all`, {
+      headers: getHeaders()
+    })
+    return res.json()
+  },
 
-createAnnouncement: async (data) => {
-  const res = await fetch(`${API_URL}/announcements`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify(data)
-  })
-  return res.json()
-},
+  createAnnouncement: async (data) => {
+    const res = await fetch(`${API_URL}/announcements`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    })
+    return res.json()
+  },
 
-deleteAnnouncement: async (id) => {
-  const res = await fetch(`${API_URL}/announcements/${id}`, {
-    method: 'DELETE',
-    headers: getHeaders()
-  })
-  return res.json()
-}
-
+  deleteAnnouncement: async (id) => {
+    const res = await fetch(`${API_URL}/announcements/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    })
+    return res.json()
+  }
 }

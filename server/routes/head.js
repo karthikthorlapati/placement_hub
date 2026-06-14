@@ -110,12 +110,16 @@ router.get('/applications', auth, checkRole('head', 'admin'),
 router.get('/stats', auth, checkRole('head', 'admin'),
   async (req, res) => {
     try {
+      // Count ALL students regardless of department
       const totalStudents = await User.countDocuments({ role: 'student' })
+
       const totalCoordinators = await User.countDocuments({
         role: 'coordinator'
       })
+
       const totalCompanies = await Company.countDocuments()
       const totalApplications = await Application.countDocuments()
+
       const totalSelected = await Application.countDocuments({
         status: 'selected'
       })
@@ -123,21 +127,26 @@ router.get('/stats', auth, checkRole('head', 'admin'),
         status: 'shortlisted'
       })
 
-      // Department wise stats
-      const departments = await User.distinct('department', {
+      // Department wise stats - normalize case
+      const allStudents = await User.find({
         role: 'student',
-        department: { $ne: '' }
+        department: { $ne: '', $ne: null }
+      }).select('department')
+
+      const deptCounts = {}
+      allStudents.forEach(student => {
+        const dept = student.department.toUpperCase().trim()
+        deptCounts[dept] = (deptCounts[dept] || 0) + 1
       })
 
-      const deptStats = await Promise.all(
-        departments.map(async (dept) => {
-          const deptStudents = await User.countDocuments({
-            role: 'student',
-            department: dept
-          })
-          return { department: dept, students: deptStudents }
-        })
-      )
+      const deptStats = Object.keys(deptCounts).map(dept => ({
+        department: dept,
+        students: deptCounts[dept]
+      }))
+
+      console.log('=== STATS DEBUG ===')
+      console.log('Total Students:', totalStudents)
+      console.log('Dept Stats:', deptStats)
 
       res.json({
         totalStudents,
@@ -149,6 +158,7 @@ router.get('/stats', auth, checkRole('head', 'admin'),
         deptStats
       })
     } catch (error) {
+      console.log('Stats error:', error)
       res.status(500).json({ message: 'Server error', error: error.message })
     }
   }
