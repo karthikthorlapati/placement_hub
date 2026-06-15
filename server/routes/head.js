@@ -205,8 +205,8 @@ router.get('/company-report/:companyId',
   }
 )
 
-// ✅ Upload CSV and notify shortlisted students
-router.post('/notify-shortlisted/:companyId',
+// ✅ STAGE 1 — Process Shortlisting Round
+router.post('/process-shortlist/:companyId',
   auth, checkRole('head', 'admin'),
   upload.single('csvFile'),
   async (req, res) => {
@@ -224,7 +224,6 @@ router.post('/notify-shortlisted/:companyId',
 
       // Read roll numbers from CSV
       const rollNumbers = []
-      const results = []
 
       await new Promise((resolve, reject) => {
         fs.createReadStream(req.file.path)
@@ -235,67 +234,98 @@ router.post('/notify-shortlisted/:companyId',
               data.Roll_Number ||
               Object.values(data)[0]
             if (rollNumber) {
-              rollNumbers.push(rollNumber.toString().trim())
+              rollNumbers.push(rollNumber.toString().trim().toUpperCase())
             }
           })
           .on('end', resolve)
           .on('error', reject)
       })
 
-      // Delete uploaded file after reading
       fs.unlinkSync(req.file.path)
 
       if (rollNumbers.length === 0) {
         return res.status(400).json({
-          message: 'No roll numbers found in CSV!',
-          hint: 'Make sure CSV has a column named roll_number'
+          message: 'No roll numbers found in CSV!'
         })
       }
 
-      // Find students by roll numbers
-      const foundStudents = await User.find({
-        rollNumber: { $in: rollNumbers },
-        role: 'student'
-      })
+      // Get ALL applications for this company (currently 'applied' status)
+      const allApplications = await Application.find({
+        company: companyId,
+        status: 'applied'
+      }).populate('student')
 
-      const foundRollNumbers = foundStudents.map(s => s.rollNumber)
-      const notFoundRollNumbers = rollNumbers.filter(
-        r => !foundRollNumbers.includes(r)
+      const validApplications = allApplications.filter(
+        app => app.student !== null
       )
 
-      // Update application status and send notifications
-      let notifiedCount = 0
-      for (const student of foundStudents) {
-        // Update application status
-        await Application.findOneAndUpdate(
-          { student: student._id, company: companyId },
-          { status: 'shortlisted' },
-          { new: true }
-        )
+      let shortlistedCount = 0
+      let rejectedCount = 0
+      const notFoundRollNumbers = []
+      const shortlistedStudents = []
+      const rejectedStudents = []
 
-        // Send notification
-        const notification = new Notification({
-          user: student._id,
-          message: `🎉 Congratulations! You have been shortlisted for ${company.name}!`,
-          type: 'application'
-        })
-        await notification.save()
-        notifiedCount++
+      // Process each applied student
+      for (const application of validApplications) {
+        const studentRoll = application.student.rollNumber
+          .toUpperCase().trim()
 
-        results.push({
-          name: student.name,
-          rollNumber: student.rollNumber,
-          email: student.email,
-          status: 'notified'
-        })
+        if (rollNumbers.includes(studentRoll)) {
+          // ✅ SHORTLISTED
+          application.status = 'shortlisted'
+          await application.save()
+
+          const notification = new Notification({
+            user: application.student._id,
+            message: `🎉 Congratulations! You have been SHORTLISTED for ${company.name} (${company.role})! Next round details will be shared soon.`,
+            type: 'application'
+          })
+          await notification.save()
+
+          shortlistedCount++
+          shortlistedStudents.push({
+            name: application.student.name,
+            rollNumber: application.student.rollNumber,
+            email: application.student.email
+          })
+        } else {
+          // ❌ REJECTED (applied but not in shortlist)
+          application.status = 'rejected'
+          await application.save()
+
+          const notification = new Notification({
+            user: application.student._id,
+            message: `📋 Update on your application to ${company.name} (${company.role}): Unfortunately, you were not shortlisted for the next round. Keep applying to other opportunities!`,
+            type: 'application'
+          })
+          await notification.save()
+
+          rejectedCount++
+          rejectedStudents.push({
+            name: application.student.name,
+            rollNumber: application.student.rollNumber,
+            email: application.student.email
+          })
+        }
       }
 
+      // Check for roll numbers in CSV not found in applications
+      const appliedRollNumbers = validApplications.map(
+        app => app.student.rollNumber.toUpperCase().trim()
+      )
+      rollNumbers.forEach(roll => {
+        if (!appliedRollNumbers.includes(roll)) {
+          notFoundRollNumbers.push(roll)
+        }
+      })
+
       res.json({
-        message: `Successfully notified ${notifiedCount} students!`,
-        totalRollNumbers: rollNumbers.length,
-        notifiedCount,
+        message: `Shortlisting processed! ${shortlistedCount} shortlisted, ${rejectedCount} rejected.`,
+        shortlistedCount,
+        rejectedCount,
         notFoundRollNumbers,
-        results
+        shortlistedStudents,
+        rejectedStudents
       })
 
     } catch (error) {
@@ -304,5 +334,161 @@ router.post('/notify-shortlisted/:companyId',
     }
   }
 )
+
+// ✅ STAGE 2 — Process Final Selection Round
+router.post('/process-selection/:companyId',
+  auth, checkRole('head', 'admin'),
+  upload.single('csvFile'),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'Please upload a CSV file!' })
+      }
+
+      const companyId = req.params.companyId
+      const company = await Company.findById(companyId)
+
+      if (!company) {
+        return res.status(404).json({ message: 'Company not found!' })
+      }
+
+      // Read roll numbers from CSV
+      const rollNumbers = []
+
+      await new Promise((resolve, reject) => {
+        fs.createReadStream(req.file.path)
+          .pipe(csv())
+          .on('data', (data) => {
+            const rollNumber = data.roll_number ||
+              data.rollNumber ||
+              data.Roll_Number ||
+              Object.values(data)[0]
+            if (rollNumber) {
+              rollNumbers.push(rollNumber.toString().trim().toUpperCase())
+            }
+          })
+          .on('end', resolve)
+          .on('error', reject)
+      })
+
+      fs.unlinkSync(req.file.path)
+
+      if (rollNumbers.length === 0) {
+        return res.status(400).json({
+          message: 'No roll numbers found in CSV!'
+        })
+      }
+
+      // Get all SHORTLISTED applications for this company
+      const shortlistedApplications = await Application.find({
+        company: companyId,
+        status: 'shortlisted'
+      }).populate('student')
+
+      const validApplications = shortlistedApplications.filter(
+        app => app.student !== null
+      )
+
+      let selectedCount = 0
+      let rejectedCount = 0
+      const notFoundRollNumbers = []
+      const selectedStudents = []
+      const rejectedStudents = []
+
+      for (const application of validApplications) {
+        const studentRoll = application.student.rollNumber
+          .toUpperCase().trim()
+
+        if (rollNumbers.includes(studentRoll)) {
+          // 🎉 SELECTED
+          application.status = 'selected'
+          await application.save()
+
+          const notification = new Notification({
+            user: application.student._id,
+            message: `🎉🎊 CONGRATULATIONS! You have been SELECTED for ${company.name} (${company.role})! Package: ${company.package}. HR will contact you soon with further details!`,
+            type: 'application'
+          })
+          await notification.save()
+
+          selectedCount++
+          selectedStudents.push({
+            name: application.student.name,
+            rollNumber: application.student.rollNumber,
+            email: application.student.email
+          })
+        } else {
+          // ❌ REJECTED in final round
+          application.status = 'rejected'
+          await application.save()
+
+          const notification = new Notification({
+            user: application.student._id,
+            message: `📋 Final Update for ${company.name} (${company.role}): Thank you for participating in the selection process. Unfortunately, you were not selected this time. We encourage you to apply for upcoming opportunities!`,
+            type: 'application'
+          })
+          await notification.save()
+
+          rejectedCount++
+          rejectedStudents.push({
+            name: application.student.name,
+            rollNumber: application.student.rollNumber,
+            email: application.student.email
+          })
+        }
+      }
+
+      // Check for roll numbers in CSV not found in shortlisted applications
+      const shortlistedRollNumbers = validApplications.map(
+        app => app.student.rollNumber.toUpperCase().trim()
+      )
+      rollNumbers.forEach(roll => {
+        if (!shortlistedRollNumbers.includes(roll)) {
+          notFoundRollNumbers.push(roll)
+        }
+      })
+
+      res.json({
+        message: `Final selection processed! ${selectedCount} selected, ${rejectedCount} rejected.`,
+        selectedCount,
+        rejectedCount,
+        notFoundRollNumbers,
+        selectedStudents,
+        rejectedStudents
+      })
+
+    } catch (error) {
+      console.log('Error:', error)
+      res.status(500).json({ message: 'Server error', error: error.message })
+    }
+  }
+)
+
+// ✅ Get applications by status for a company (for head to view before processing)
+router.get('/company-applications/:companyId',
+  auth, checkRole('head', 'admin'),
+  async (req, res) => {
+    try {
+      const applications = await Application.find({
+        company: req.params.companyId
+      }).populate('student', 'name email rollNumber department cgpa')
+
+      const valid = applications.filter(app => app.student !== null)
+
+      const grouped = {
+        applied: valid.filter(a => a.status === 'applied'),
+        shortlisted: valid.filter(a => a.status === 'shortlisted'),
+        selected: valid.filter(a => a.status === 'selected'),
+        rejected: valid.filter(a => a.status === 'rejected')
+      }
+
+      res.json(grouped)
+    } catch (error) {
+      res.status(500).json({ message: 'Server error', error: error.message })
+    }
+  }
+)
+
+module.exports = router
 
 module.exports = router
