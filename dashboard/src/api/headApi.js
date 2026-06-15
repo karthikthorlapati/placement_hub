@@ -93,12 +93,12 @@ export const headApi = {
     return res.json()
   },
 
-  notifyShortlisted: async (companyId, csvFile) => {
+  processShortlist: async (companyId, csvFile) => {
     const formData = new FormData()
     formData.append('csvFile', csvFile)
 
     const res = await fetch(
-      `${API_URL}/head/notify-shortlisted/${companyId}`,
+      `${API_URL}/head/process-shortlist/${companyId}`,
       {
         method: 'POST',
         headers: {
@@ -109,6 +109,32 @@ export const headApi = {
     )
     return res.json()
   },
+
+  processSelection: async (companyId, csvFile) => {
+    const formData = new FormData()
+    formData.append('csvFile', csvFile)
+
+    const res = await fetch(
+      `${API_URL}/head/process-selection/${companyId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      }
+    )
+    return res.json()
+  },
+
+  getCompanyApplications: async (companyId) => {
+    const res = await fetch(
+      `${API_URL}/head/company-applications/${companyId}`,
+      { headers: getHeaders() }
+    )
+    return res.json()
+  },
+
 
   getAnnouncements: async () => {
     const res = await fetch(`${API_URL}/announcements/all`, {
