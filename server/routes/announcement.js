@@ -6,15 +6,17 @@ const Announcement = require('../models/Announcement')
 const User = require('../models/User')
 
 // ✅ Get announcements for student
-// Student announcements
 router.get('/student', auth, async (req, res) => {
   try {
     const student = await User.findById(req.user.userId)
     const department = student.department.toUpperCase().trim()
+    const now = new Date()
 
     const announcements = await Announcement.find({
+      isActive: true,
+      expiryDate: { $gte: now },
       $or: [
-        { department: { $regex: new RegExp(`^${department}$`, 'i') } },
+        { department: department },
         { department: 'all' }
       ]
     })
@@ -23,27 +25,7 @@ router.get('/student', auth, async (req, res) => {
 
     res.json(announcements)
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message })
-  }
-})
-
-// Coordinator announcements
-router.get('/coordinator', auth, async (req, res) => {
-  try {
-    const coordinator = await User.findById(req.user.userId)
-    const department = coordinator.department.toUpperCase().trim()
-
-    const announcements = await Announcement.find({
-      $or: [
-        { department: { $regex: new RegExp(`^${department}$`, 'i') } },
-        { department: 'all' }
-      ]
-    })
-    .populate('postedBy', 'name role')
-    .sort({ createdAt: -1 })
-
-    res.json(announcements)
-  } catch (error) {
+    console.log('Error:', error)
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
@@ -52,9 +34,14 @@ router.get('/coordinator', auth, async (req, res) => {
 router.get('/coordinator', auth, async (req, res) => {
   try {
     const coordinator = await User.findById(req.user.userId)
+    const department = coordinator.department.toUpperCase().trim()
+    const now = new Date()
+
     const announcements = await Announcement.find({
+      isActive: true,
+      expiryDate: { $gte: now },
       $or: [
-        { department: coordinator.department.toUpperCase() },
+        { department: department },
         { department: 'all' }
       ]
     })
@@ -72,7 +59,11 @@ router.get('/all', auth,
   checkRole('head', 'admin'),
   async (req, res) => {
     try {
-      const announcements = await Announcement.find()
+      const now = new Date()
+      const announcements = await Announcement.find({
+        isActive: true,
+        expiryDate: { $gte: now }
+      })
         .populate('postedBy', 'name role')
         .sort({ createdAt: -1 })
       res.json(announcements)
@@ -105,7 +96,6 @@ router.post('/', auth,
         })
       }
 
-      // Check expiry date is in future
       if (new Date(expiryDate) <= new Date()) {
         return res.status(400).json({
           message: 'Expiry date must be in the future!'
@@ -135,7 +125,7 @@ router.post('/', auth,
   }
 )
 
-// ✅ Delete announcement manually
+// ✅ Delete announcement
 router.delete('/:id', auth,
   checkRole('coordinator', 'head', 'admin'),
   async (req, res) => {

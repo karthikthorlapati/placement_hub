@@ -22,7 +22,8 @@ const announcementSchema = new mongoose.Schema({
   department: {
     type: String,
     default: 'all',
-    set: (val) => val && val !== 'all' ? val.toUpperCase().trim() : 'all'
+    set: (val) => val && val.toLowerCase() !== 'all' ?
+      val.toUpperCase().trim() : 'all'
   },
   expiryDate: {
     type: Date,
@@ -33,13 +34,5 @@ const announcementSchema = new mongoose.Schema({
     default: true
   }
 }, { timestamps: true })
-
-// Auto filter expired announcements
-announcementSchema.pre('find', function() {
-  this.where({
-    expiryDate: { $gt: new Date() },
-    isActive: true
-  })
-})
 
 module.exports = mongoose.model('Announcement', announcementSchema)

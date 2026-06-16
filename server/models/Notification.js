@@ -10,14 +10,13 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  type: {
+    type: String,
+    default: 'general'
+  },
   isRead: {
     type: Boolean,
     default: false
-  },
-  type: {
-    type: String,
-    enum: ['application', 'company', 'general'],
-    default: 'general'
   }
 }, { timestamps: true })
 

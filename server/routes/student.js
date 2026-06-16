@@ -5,6 +5,7 @@ const Company = require('../models/Company')
 const Application = require('../models/Application')
 const User = require('../models/User')
 const bcrypt = require('bcryptjs')
+const Notification = require('../models/Notification')  // ✅ Must be here!
 
 
 // ✅ Get all active companies
@@ -50,23 +51,26 @@ router.get('/companies', auth, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
-// ✅ Apply for a company
-// ✅ Apply for a company with CGPA check
 // ✅ Apply for company with notification
 router.post('/apply/:companyId', auth, async (req, res) => {
   try {
+    console.log('=== APPLY DEBUG ===')
+    console.log('Student ID:', req.user.userId)
+    console.log('Company ID:', req.params.companyId)
+
     const company = await Company.findById(req.params.companyId)
     if (!company) {
       return res.status(404).json({ message: 'Company not found!' })
     }
+    console.log('Company found:', company.name)
 
     const student = await User.findById(req.user.userId)
+    console.log('Student found:', student.name, 'CGPA:', student.cgpa)
 
     // Check CGPA eligibility
     if (student.cgpa < company.minimumCgpa) {
       return res.status(403).json({
-        message: `You need minimum ${company.minimumCgpa} CGPA to apply!
-        Your CGPA is ${student.cgpa}`
+        message: `You need minimum ${company.minimumCgpa} CGPA to apply! Your CGPA is ${student.cgpa}`
       })
     }
 
@@ -82,6 +86,7 @@ router.post('/apply/:companyId', auth, async (req, res) => {
       })
     }
 
+    console.log('Creating application...')
     // Create application
     const application = new Application({
       student: req.user.userId,
@@ -89,25 +94,27 @@ router.post('/apply/:companyId', auth, async (req, res) => {
     })
 
     await application.save()
+    console.log('Application saved successfully')
 
-    // ✅ Send notification to student
+    console.log('Creating notification...')
+    // Send notification
     const notification = new Notification({
       user: req.user.userId,
       message: `✅ You have successfully applied for ${company.name}!`,
       type: 'application'
     })
     await notification.save()
+    console.log('Notification saved successfully')
 
     res.status(201).json({ message: 'Applied successfully!' })
 
   } catch (error) {
-    console.log('Error:', error)
+    console.log('=== APPLY ERROR ===')
+    console.log(error)
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
 
-// ✅ Get my applications
-// ✅ Get my applications
 // ✅ Get my applications — show all including expired
 router.get('/my-applications', auth, async (req, res) => {
   try {
