@@ -6,6 +6,7 @@ const Application = require('../models/Application')
 const User = require('../models/User')
 const bcrypt = require('bcryptjs')
 const Notification = require('../models/Notification')  // ✅ Must be here!
+const sendNotification = require('../utils/sendNotification')
 
 
 // ✅ Get all active companies
@@ -97,14 +98,15 @@ router.post('/apply/:companyId', auth, async (req, res) => {
     console.log('Application saved successfully')
 
     console.log('Creating notification...')
-    // Send notification
-    const notification = new Notification({
-      user: req.user.userId,
-      message: `✅ You have successfully applied for ${company.name}!`,
-      type: 'application'
-    })
-    await notification.save()
+
+    await sendNotification(
+      req.user.userId,
+      `✅ You have successfully applied for ${company.name}!`,
+      'application'
+    )
+
     console.log('Notification saved successfully')
+
 
     res.status(201).json({ message: 'Applied successfully!' })
 

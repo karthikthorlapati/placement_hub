@@ -1,2 +1,28 @@
+# Dependencies
 node_modules/
+*/node_modules/
+
+# Environment variables
 .env
+server/.env
+frontend/.env
+
+# Uploads folder
+server/uploads/
+
+# Build
+frontend/build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# React
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
