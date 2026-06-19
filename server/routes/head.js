@@ -495,4 +495,3 @@ router.get('/company-applications/:companyId',
 
 module.exports = router
 
-module.exports = router
