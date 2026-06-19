@@ -7,7 +7,7 @@ const Application = require('../models/Application')
 const User = require('../models/User')
 const Notification = require('../models/Notification')
 
-// ✅ Get students by coordinator's department only
+// ✅ Get students with resume link
 router.get('/students', auth, async (req, res) => {
   try {
     const coordinator = await User.findById(req.user.userId)
@@ -120,20 +120,46 @@ router.get('/companies', auth, async (req, res) => {
   }
 })
 
-// ✅ Update company — coordinator or head
+// ✅ Full Edit company — coordinator or head
 router.put('/companies/:companyId', auth,
   checkRole('coordinator', 'head'),
   async (req, res) => {
     try {
+      const {
+        name,
+        description,
+        role,
+        package: pkg,
+        minimumCgpa,
+        lastDate,
+        registrationLink,
+        status
+      } = req.body
+
+      const updateData = {}
+
+      if (name) updateData.name = name
+      if (description !== undefined) updateData.description = description
+      if (role) updateData.role = role
+      if (pkg) updateData.package = pkg
+      if (minimumCgpa !== undefined) updateData.minimumCgpa = minimumCgpa
+      if (lastDate) updateData.lastDate = lastDate
+      if (registrationLink !== undefined) {
+        updateData.registrationLink = registrationLink
+      }
+      if (status) updateData.status = status
+
       const company = await Company.findByIdAndUpdate(
         req.params.companyId,
-        { status: req.body.status },
+        updateData,
         { new: true }
       )
+
       if (!company) {
-        return res.status(404).json({ message: 'Company not found' })
+        return res.status(404).json({ message: 'Company not found!' })
       }
-      res.json({ message: 'Company updated!', company })
+
+      res.json({ message: 'Company updated successfully!', company })
     } catch (error) {
       res.status(500).json({ message: 'Server error', error: error.message })
     }

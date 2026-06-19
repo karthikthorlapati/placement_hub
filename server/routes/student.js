@@ -9,11 +9,7 @@ const Notification = require('../models/Notification')  // ✅ Must be here!
 const sendNotification = require('../utils/sendNotification')
 
 
-// ✅ Get all active companies
-// ✅ Get all active companies with eligibility check
-// ✅ Get active companies for student's department
-// ✅ Get active companies for student
-// ✅ Get active companies for student
+
 // ✅ Get active companies — exclude expired
 router.get('/companies', auth, async (req, res) => {
   try {
@@ -117,6 +113,54 @@ router.post('/apply/:companyId', auth, async (req, res) => {
   }
 })
 
+
+// ✅ Get profile completion percentage
+router.get('/profile-completion', auth, async (req, res) => {
+  try {
+    const student = await User.findById(req.user.userId)
+      .select('-password')
+
+    const fields = [
+      { key: 'name', label: 'Name' },
+      { key: 'email', label: 'Email' },
+      { key: 'phone', label: 'Phone' },
+      { key: 'department', label: 'Department' },
+      { key: 'rollNumber', label: 'Roll Number' },
+      { key: 'cgpa', label: 'CGPA' },
+      { key: 'resumeLink', label: 'Resume Link' },
+      { key: 'skills', label: 'Skills' },
+      { key: 'linkedin', label: 'LinkedIn' },
+      { key: 'github', label: 'GitHub' }
+    ]
+
+    const completed = fields.filter(field => {
+      const value = student[field.key]
+      return value !== '' && value !== null &&
+        value !== undefined && value !== 0
+    })
+
+    const missing = fields.filter(field => {
+      const value = student[field.key]
+      return value === '' || value === null ||
+        value === undefined || value === 0
+    })
+
+    const percentage = Math.round(
+      (completed.length / fields.length) * 100
+    )
+
+    res.json({
+      percentage,
+      completed: completed.map(f => f.label),
+      missing: missing.map(f => f.label)
+    })
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+})
+
+
 // ✅ Get my applications — show all including expired
 router.get('/my-applications', auth, async (req, res) => {
   try {
@@ -177,7 +221,8 @@ router.delete('/delete/:userId', auth, async (req, res) => {
 // ✅ Get student profile
 router.get('/profile', auth, async (req, res) => {
   try {
-    const student = await User.findById(req.user.userId).select('-password')
+    const student = await User.findById(req.user.userId)
+      .select('-password')
     res.json(student)
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message })
@@ -200,31 +245,37 @@ router.get('/check-application/:companyId', auth, async (req, res) => {
 })
 
 // ✅ Update student profile
-// ✅ Update student profile
 router.put('/profile', auth, async (req, res) => {
   try {
-    const { name, phone, department, rollNumber, cgpa } = req.body
+    const {
+      name,
+      phone,
+      cgpa,
+      resumeLink,
+      skills,
+      linkedin,
+      github
+    } = req.body
 
-    // Validate CGPA
-    if (cgpa && (cgpa < 0 || cgpa > 10)) {
-      return res.status(400).json({
-        message: 'CGPA must be between 0 and 10!'
-      })
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(
+    const updatedStudent = await User.findByIdAndUpdate(
       req.user.userId,
-      { name, phone, department, rollNumber, cgpa },
+      {
+        name,
+        phone,
+        cgpa,
+        resumeLink,
+        skills,
+        linkedin,
+        github
+      },
       { new: true }
     ).select('-password')
 
     res.json({
       message: 'Profile updated successfully!',
-      user: updatedUser
+      student: updatedStudent
     })
-
   } catch (error) {
-    console.log('Error:', error)
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })

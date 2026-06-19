@@ -20,10 +20,10 @@ const userSchema = new mongoose.Schema({
     required: true
   },
   department: {
-  type: String,
-  default: '',
-  set: (val) => val ? val.toUpperCase().trim() : ''
-},
+    type: String,
+    default: '',
+    set: (val) => val ? val.toUpperCase().trim() : ''
+  },
   rollNumber: {
     type: String,
     default: ''
@@ -37,6 +37,22 @@ const userSchema = new mongoose.Schema({
     default: 0,
     min: 0,
     max: 10
+  },
+  resumeLink: {
+    type: String,
+    default: ''
+  },
+  skills: {
+    type: String,
+    default: ''
+  },
+  linkedin: {
+    type: String,
+    default: ''
+  },
+  github: {
+    type: String,
+    default: ''
   }
 }, { timestamps: true })
 
