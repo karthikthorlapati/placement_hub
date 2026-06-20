@@ -91,11 +91,11 @@ export const coordinatorApi = {
   },
 
   getAnnouncements: async () => {
-  const res = await fetch(`${API_URL}/announcements/coordinator`, {
-    headers: getHeaders()
-  })
-  return res.json()
-},
+    const res = await fetch(`${API_URL}/announcements/coordinator`, {
+      headers: getHeaders()
+    })
+    return res.json()
+  },
 
 createAnnouncement: async (data) => {
   const res = await fetch(`${API_URL}/announcements`, {
@@ -109,6 +109,13 @@ createAnnouncement: async (data) => {
 deleteAnnouncement: async (id) => {
   const res = await fetch(`${API_URL}/announcements/${id}`, {
     method: 'DELETE',
+    headers: getHeaders()
+  })
+  return res.json()
+},
+
+getPlacementStats: async () => {
+  const res = await fetch(`${API_URL}/coordinator/placement-stats`, {
     headers: getHeaders()
   })
   return res.json()

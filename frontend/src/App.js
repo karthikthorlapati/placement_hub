@@ -6,6 +6,9 @@ import './styles/global.css'
 import CoordinatorAnnouncements from './pages/coordinator/Announcements'
 import HeadAnnouncements from './pages/head/Announcements'
 
+import HeadStatistics from './pages/head/Statistics'
+import CoordinatorStatistics from './pages/coordinator/Statistics'
+
 // Student Pages
 import StudentDashboard from './pages/student/Dashboard'
 import Companies from './pages/student/Companies'
@@ -157,18 +160,30 @@ const App = () => {
           } />
 
           {/* Coordinator Announcements */}
-<Route path='/coordinator/announcements' element={
-  <ProtectedRoute role='coordinator'>
-    <CoordinatorAnnouncements />
-  </ProtectedRoute>
-} />
+          <Route path='/coordinator/announcements' element={
+            <ProtectedRoute role='coordinator'>
+              <CoordinatorAnnouncements />
+            </ProtectedRoute>
+          } />
 
-{/* Head Announcements */}
-<Route path='/head/announcements' element={
-  <ProtectedRoute role='head'>
-    <HeadAnnouncements />
-  </ProtectedRoute>
-} />
+          {/* Head Announcements */}
+          <Route path='/head/announcements' element={
+            <ProtectedRoute role='head'>
+              <HeadAnnouncements />
+            </ProtectedRoute>
+          } />
+
+          <Route path='/head/statistics' element={
+            <ProtectedRoute role='head'>
+              <HeadStatistics />
+            </ProtectedRoute>
+          } />
+
+          <Route path='/coordinator/statistics' element={
+            <ProtectedRoute role='coordinator'>
+              <CoordinatorStatistics />
+            </ProtectedRoute>
+          } />
 
         </Routes>
       </BrowserRouter>

@@ -15,7 +15,8 @@ const coordinatorLinks = [
   { path: '/coordinator/students', label: '👨‍🎓 Students' },
   { path: '/coordinator/companies', label: '🏢 Companies' },
   { path: '/coordinator/announcements', label: '📢 Announcements' },
-  { path: '/coordinator/report', label: '📊 Reports' }
+  { path: '/coordinator/statistics', label: '📊 Statistics' },
+  { path: '/coordinator/report', label: '📈 Reports' }
 ]
 
 const headLinks = [
@@ -24,9 +25,11 @@ const headLinks = [
   { path: '/head/companies', label: '🏢 All Companies' },
   { path: '/head/applications', label: '📋 All Applications' },
   { path: '/head/announcements', label: '📢 Announcements' },
-  { path: '/head/report', label: '📊 Reports' },
-  { path: '/head/notify', label: '📤 Notify Shortlisted' }
+  { path: '/head/statistics', label: '📊 Statistics' },
+  { path: '/head/report', label: '📈 Reports' },
+  { path: '/head/notify', label: '📤 Process Applications' }
 ]
+
 
 const adminLinks = [
   { path: '/admin/dashboard', label: '🏠 Dashboard' },

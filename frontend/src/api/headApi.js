@@ -158,5 +158,12 @@ export const headApi = {
       headers: getHeaders()
     })
     return res.json()
+  },
+
+  getPlacementStats: async () => {
+    const res = await fetch(`${API_URL}/head/placement-stats`, {
+      headers: getHeaders()
+    })
+    return res.json()
   }
 }

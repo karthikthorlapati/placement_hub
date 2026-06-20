@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import Layout from '../../components/Layout'
-import { headApi } from '../../api'
+import { coordinatorApi } from '../../api'
 
 const Statistics = () => {
   const [stats, setStats] = useState(null)
@@ -12,7 +12,7 @@ const Statistics = () => {
 
   const loadStats = async () => {
     try {
-      const data = await headApi.getPlacementStats()
+      const data = await coordinatorApi.getPlacementStats()
       setStats(data)
     } catch (error) {
       console.log('Error:', error)
@@ -29,9 +29,10 @@ const Statistics = () => {
 
   return (
     <Layout>
-      <h2 className='page-title'>📊 Placement Statistics</h2>
+      <h2 className='page-title'>
+        📊 {stats?.department} Department Statistics
+      </h2>
 
-      {/* Main Stats */}
       <div className='stats-container'>
         <div style={{
           background: 'linear-gradient(135deg, #3498db, #2980b9)',
@@ -67,7 +68,6 @@ const Statistics = () => {
         </div>
       </div>
 
-      {/* Package Stats */}
       <div className='stats-container'>
         <div style={{
           background: 'white', border: '2px solid #f39c12',
@@ -92,7 +92,6 @@ const Statistics = () => {
         </div>
       </div>
 
-      {/* Top Companies */}
       <div className='section'>
         <h3>🏆 Top Recruiting Companies</h3>
         {stats?.topCompanies && stats.topCompanies.length > 0 ? (
@@ -137,59 +136,6 @@ const Statistics = () => {
           ))
         ) : (
           <p style={{ color: '#7f8c8d' }}>No placements recorded yet!</p>
-        )}
-      </div>
-
-      {/* Department Wise Placement */}
-      <div className='section'>
-        <h3>🏫 Department Wise Placement</h3>
-        {stats?.deptWisePlacement && stats.deptWisePlacement.length > 0 ? (
-          <table className='data-table'>
-            <thead>
-              <tr>
-                <th>Department</th>
-                <th>Total Students</th>
-                <th>Placed</th>
-                <th>Placement %</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.deptWisePlacement.map((dept, index) => (
-                <tr key={index}>
-                  <td>{dept.department}</td>
-                  <td>{dept.totalStudents}</td>
-                  <td>{dept.placedStudents}</td>
-                  <td>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px'
-                    }}>
-                      <div style={{
-                        width: '100px',
-                        background: '#f0f0f0',
-                        borderRadius: '10px',
-                        height: '12px',
-                        overflow: 'hidden'
-                      }}>
-                        <div style={{
-                          width: `${dept.percentage}%`,
-                          background: dept.percentage >= 50 ?
-                            '#2ecc71' : '#f39c12',
-                          height: '100%'
-                        }} />
-                      </div>
-                      <span style={{ fontWeight: 'bold' }}>
-                        {dept.percentage}%
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p style={{ color: '#7f8c8d' }}>No data available!</p>
         )}
       </div>
 
