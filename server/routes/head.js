@@ -59,15 +59,19 @@ router.get('/departments', auth, checkRole('head', 'admin'),
   }
 )
 
-// ✅ Get all students (all departments)
+// ✅ Get all students with resume
 router.get('/students', auth, checkRole('head', 'admin'),
   async (req, res) => {
     try {
       const { department } = req.query
       const filter = { role: 'student' }
+
       if (department && department !== 'all') {
-        filter.department = department
+        filter.department = {
+          $regex: new RegExp(`^${department}$`, 'i')
+        }
       }
+
       const students = await User.find(filter).select('-password')
       res.json(students)
     } catch (error) {
@@ -491,4 +495,3 @@ router.get('/company-applications/:companyId',
 
 module.exports = router
 
-module.exports = router
