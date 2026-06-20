@@ -26,7 +26,77 @@ router.get('/students', auth, async (req, res) => {
 })
 // Add a new company
 
+// ✅ Get department placement statistics
+router.get('/placement-stats', auth, async (req, res) => {
+  try {
+    const coordinator = await User.findById(req.user.userId)
+    const department = coordinator.department.toUpperCase().trim()
 
+    const deptStudents = await User.find({
+      role: 'student',
+      department: { $regex: new RegExp(`^${department}$`, 'i') }
+    })
+
+    const deptStudentIds = deptStudents.map(s => s._id.toString())
+
+    const selectedApplications = await Application.find({
+      status: 'selected'
+    }).populate('student', 'name department rollNumber')
+      .populate('company', 'name package role')
+
+    const validSelected = selectedApplications.filter(
+      app => app.student !== null &&
+      app.company !== null &&
+      deptStudentIds.includes(app.student._id.toString())
+    )
+
+    const totalPlaced = validSelected.length
+    const totalStudents = deptStudents.length
+
+    const packageNumbers = validSelected.map(app => {
+      const pkg = app.company.package
+      const match = pkg.match(/[\d.]+/)
+      return match ? parseFloat(match[0]) : 0
+    }).filter(p => p > 0)
+
+    const averagePackage = packageNumbers.length > 0
+      ? (packageNumbers.reduce((a, b) => a + b, 0) / packageNumbers.length).toFixed(2)
+      : 0
+
+    const highestPackage = packageNumbers.length > 0
+      ? Math.max(...packageNumbers)
+      : 0
+
+    const companyCounts = {}
+    validSelected.forEach(app => {
+      const companyName = app.company.name
+      companyCounts[companyName] = (companyCounts[companyName] || 0) + 1
+    })
+
+    const topCompanies = Object.entries(companyCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5)
+
+    const overallPlacementPercentage = totalStudents > 0
+      ? Math.round((totalPlaced / totalStudents) * 100)
+      : 0
+
+    res.json({
+      department,
+      totalStudents,
+      totalPlaced,
+      overallPlacementPercentage,
+      averagePackage,
+      highestPackage,
+      topCompanies
+    })
+
+  } catch (error) {
+    console.log('Error:', error)
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+})
 // ✅ Get unique departments for coordinator
 router.get('/departments', auth,
   async (req, res) => {

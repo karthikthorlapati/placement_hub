@@ -48,30 +48,22 @@ router.get('/companies', auth, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
-// ✅ Apply for company with notification
+// ✅ Apply for company with notification + timeline
 router.post('/apply/:companyId', auth, async (req, res) => {
   try {
-    console.log('=== APPLY DEBUG ===')
-    console.log('Student ID:', req.user.userId)
-    console.log('Company ID:', req.params.companyId)
-
     const company = await Company.findById(req.params.companyId)
     if (!company) {
       return res.status(404).json({ message: 'Company not found!' })
     }
-    console.log('Company found:', company.name)
 
     const student = await User.findById(req.user.userId)
-    console.log('Student found:', student.name, 'CGPA:', student.cgpa)
 
-    // Check CGPA eligibility
     if (student.cgpa < company.minimumCgpa) {
       return res.status(403).json({
         message: `You need minimum ${company.minimumCgpa} CGPA to apply! Your CGPA is ${student.cgpa}`
       })
     }
 
-    // Check if already applied
     const existingApplication = await Application.findOne({
       student: req.user.userId,
       company: req.params.companyId
@@ -83,17 +75,15 @@ router.post('/apply/:companyId', auth, async (req, res) => {
       })
     }
 
-    console.log('Creating application...')
-    // Create application
     const application = new Application({
       student: req.user.userId,
-      company: req.params.companyId
+      company: req.params.companyId,
+      timeline: [
+        { status: 'applied', date: new Date() }
+      ]
     })
 
     await application.save()
-    console.log('Application saved successfully')
-
-    console.log('Creating notification...')
 
     await sendNotification(
       req.user.userId,
@@ -101,14 +91,10 @@ router.post('/apply/:companyId', auth, async (req, res) => {
       'application'
     )
 
-    console.log('Notification saved successfully')
-
-
     res.status(201).json({ message: 'Applied successfully!' })
 
   } catch (error) {
-    console.log('=== APPLY ERROR ===')
-    console.log(error)
+    console.log('Error:', error)
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
@@ -161,14 +147,13 @@ router.get('/profile-completion', auth, async (req, res) => {
 })
 
 
-// ✅ Get my applications — show all including expired
+// ✅ Get my applications with timeline
 router.get('/my-applications', auth, async (req, res) => {
   try {
     const applications = await Application.find({
       student: req.user.userId
-    }).populate('company')
+    }).populate('company').sort({ createdAt: -1 })
 
-    // Show all applications even if company is expired
     const validApplications = applications.filter(
       app => app.company !== null
     )

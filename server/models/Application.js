@@ -19,7 +19,19 @@ const applicationSchema = new mongoose.Schema({
   appliedAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  timeline: [
+    {
+      status: {
+        type: String,
+        enum: ['applied', 'shortlisted', 'selected', 'rejected']
+      },
+      date: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  ]
 }, { timestamps: true })
 
 module.exports = mongoose.model('Application', applicationSchema)

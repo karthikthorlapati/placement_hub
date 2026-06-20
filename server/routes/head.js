@@ -37,7 +37,6 @@ const upload = multer({
   }
 })
 
-// ✅ Get all departments
 // ✅ Get unique departments (no duplicates)
 router.get('/departments', auth, checkRole('head', 'admin'),
   async (req, res) => {
@@ -47,7 +46,6 @@ router.get('/departments', auth, checkRole('head', 'admin'),
         department: { $ne: '', $ne: null }
       })
 
-      // Normalize to uppercase and remove duplicates
       const normalized = [...new Set(
         departments.map(d => d.toUpperCase().trim())
       )]
@@ -80,7 +78,6 @@ router.get('/students', auth, checkRole('head', 'admin'),
   }
 )
 
-// ✅ Get all companies (all departments)
 // ✅ Get all companies
 router.get('/companies', auth, checkRole('head', 'admin'),
   async (req, res) => {
@@ -114,7 +111,6 @@ router.get('/applications', auth, checkRole('head', 'admin'),
 router.get('/stats', auth, checkRole('head', 'admin'),
   async (req, res) => {
     try {
-      // Count ALL students regardless of department
       const totalStudents = await User.countDocuments({ role: 'student' })
 
       const totalCoordinators = await User.countDocuments({
@@ -131,7 +127,6 @@ router.get('/stats', auth, checkRole('head', 'admin'),
         status: 'shortlisted'
       })
 
-      // Department wise stats - normalize case
       const allStudents = await User.find({
         role: 'student',
         department: { $ne: '', $ne: null }
@@ -147,10 +142,6 @@ router.get('/stats', auth, checkRole('head', 'admin'),
         department: dept,
         students: deptCounts[dept]
       }))
-
-      console.log('=== STATS DEBUG ===')
-      console.log('Total Students:', totalStudents)
-      console.log('Dept Stats:', deptStats)
 
       res.json({
         totalStudents,
@@ -226,7 +217,6 @@ router.post('/process-shortlist/:companyId',
         return res.status(404).json({ message: 'Company not found!' })
       }
 
-      // Read roll numbers from CSV
       const rollNumbers = []
 
       await new Promise((resolve, reject) => {
@@ -253,7 +243,6 @@ router.post('/process-shortlist/:companyId',
         })
       }
 
-      // Get ALL applications for this company (currently 'applied' status)
       const allApplications = await Application.find({
         company: companyId,
         status: 'applied'
@@ -269,7 +258,6 @@ router.post('/process-shortlist/:companyId',
       const shortlistedStudents = []
       const rejectedStudents = []
 
-      // Process each applied student
       for (const application of validApplications) {
         const studentRoll = application.student.rollNumber
           .toUpperCase().trim()
@@ -277,6 +265,10 @@ router.post('/process-shortlist/:companyId',
         if (rollNumbers.includes(studentRoll)) {
           // ✅ SHORTLISTED
           application.status = 'shortlisted'
+          application.timeline.push({
+            status: 'shortlisted',
+            date: new Date()
+          })
           await application.save()
 
           const notification = new Notification({
@@ -295,6 +287,10 @@ router.post('/process-shortlist/:companyId',
         } else {
           // ❌ REJECTED (applied but not in shortlist)
           application.status = 'rejected'
+          application.timeline.push({
+            status: 'rejected',
+            date: new Date()
+          })
           await application.save()
 
           const notification = new Notification({
@@ -313,7 +309,6 @@ router.post('/process-shortlist/:companyId',
         }
       }
 
-      // Check for roll numbers in CSV not found in applications
       const appliedRollNumbers = validApplications.map(
         app => app.student.rollNumber.toUpperCase().trim()
       )
@@ -339,6 +334,94 @@ router.post('/process-shortlist/:companyId',
   }
 )
 
+// ✅ Get college wide placement statistics
+router.get('/placement-stats', auth, async (req, res) => {
+  try {
+    const selectedApplications = await Application.find({
+      status: 'selected'
+    }).populate('student', 'name department rollNumber')
+      .populate('company', 'name package role')
+
+    const validSelected = selectedApplications.filter(
+      app => app.student !== null && app.company !== null
+    )
+
+    const totalPlaced = validSelected.length
+
+    const packageNumbers = validSelected.map(app => {
+      const pkg = app.company.package
+      const match = pkg.match(/[\d.]+/)
+      return match ? parseFloat(match[0]) : 0
+    }).filter(p => p > 0)
+
+    const averagePackage = packageNumbers.length > 0
+      ? (packageNumbers.reduce((a, b) => a + b, 0) / packageNumbers.length).toFixed(2)
+      : 0
+
+    const highestPackage = packageNumbers.length > 0
+      ? Math.max(...packageNumbers)
+      : 0
+
+    const companyCounts = {}
+    validSelected.forEach(app => {
+      const companyName = app.company.name
+      companyCounts[companyName] = (companyCounts[companyName] || 0) + 1
+    })
+
+    const topCompanies = Object.entries(companyCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5)
+
+    const allStudents = await User.find({ role: 'student' })
+    const deptTotals = {}
+    const deptPlaced = {}
+
+    allStudents.forEach(student => {
+      const dept = student.department.toUpperCase().trim()
+      if (dept) {
+        deptTotals[dept] = (deptTotals[dept] || 0) + 1
+      }
+    })
+
+    validSelected.forEach(app => {
+      const dept = app.student.department.toUpperCase().trim()
+      if (dept) {
+        deptPlaced[dept] = (deptPlaced[dept] || 0) + 1
+      }
+    })
+
+    const deptWisePlacement = Object.keys(deptTotals).map(dept => ({
+      department: dept,
+      totalStudents: deptTotals[dept],
+      placedStudents: deptPlaced[dept] || 0,
+      percentage: deptTotals[dept] > 0
+        ? Math.round(((deptPlaced[dept] || 0) / deptTotals[dept]) * 100)
+        : 0
+    }))
+
+    const totalStudents = allStudents.length
+
+    const overallPlacementPercentage = totalStudents > 0
+      ? Math.round((totalPlaced / totalStudents) * 100)
+      : 0
+
+    res.json({
+      totalStudents,
+      totalPlaced,
+      overallPlacementPercentage,
+      averagePackage,
+      highestPackage,
+      topCompanies,
+      deptWisePlacement
+    })
+
+  } catch (error) {
+    console.log('Error:', error)
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+})
+
 // ✅ STAGE 2 — Process Final Selection Round
 router.post('/process-selection/:companyId',
   auth, checkRole('head', 'admin'),
@@ -356,7 +439,6 @@ router.post('/process-selection/:companyId',
         return res.status(404).json({ message: 'Company not found!' })
       }
 
-      // Read roll numbers from CSV
       const rollNumbers = []
 
       await new Promise((resolve, reject) => {
@@ -383,7 +465,6 @@ router.post('/process-selection/:companyId',
         })
       }
 
-      // Get all SHORTLISTED applications for this company
       const shortlistedApplications = await Application.find({
         company: companyId,
         status: 'shortlisted'
@@ -406,6 +487,10 @@ router.post('/process-selection/:companyId',
         if (rollNumbers.includes(studentRoll)) {
           // 🎉 SELECTED
           application.status = 'selected'
+          application.timeline.push({
+            status: 'selected',
+            date: new Date()
+          })
           await application.save()
 
           const notification = new Notification({
@@ -424,6 +509,10 @@ router.post('/process-selection/:companyId',
         } else {
           // ❌ REJECTED in final round
           application.status = 'rejected'
+          application.timeline.push({
+            status: 'rejected',
+            date: new Date()
+          })
           await application.save()
 
           const notification = new Notification({
@@ -442,7 +531,6 @@ router.post('/process-selection/:companyId',
         }
       }
 
-      // Check for roll numbers in CSV not found in shortlisted applications
       const shortlistedRollNumbers = validApplications.map(
         app => app.student.rollNumber.toUpperCase().trim()
       )
@@ -468,7 +556,7 @@ router.post('/process-selection/:companyId',
   }
 )
 
-// ✅ Get applications by status for a company (for head to view before processing)
+// ✅ Get applications by status for a company
 router.get('/company-applications/:companyId',
   auth, checkRole('head', 'admin'),
   async (req, res) => {
@@ -494,4 +582,3 @@ router.get('/company-applications/:companyId',
 )
 
 module.exports = router
-
