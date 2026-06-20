@@ -43,6 +43,14 @@ export const studentApi = {
     return res.json()
   },
 
+  getProfileCompletion: async () => {
+    const res = await fetch(
+      `${API_URL}/student/profile-completion`,
+      { headers: getHeaders() }
+    )
+    return res.json()
+  },
+
   updateProfile: async (data) => {
     const res = await fetch(`${API_URL}/student/profile`, {
       method: 'PUT',

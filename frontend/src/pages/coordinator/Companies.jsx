@@ -8,6 +8,8 @@ const CoordinatorCompanies = () => {
   const [loading, setLoading] = useState(true)
   const [formMsg, setFormMsg] = useState('')
   const [formErr, setFormErr] = useState('')
+  const [editingCompany, setEditingCompany] = useState(null)
+  const [editForm, setEditForm] = useState({})
   const [form, setForm] = useState({
   name: '',
   role: '',
@@ -86,6 +88,38 @@ const CoordinatorCompanies = () => {
     try {
       await coordinatorApi.deleteCompany(companyId)
       loadCompanies()
+    } catch (error) {
+      console.log('Error:', error)
+    }
+  }
+
+  const handleEdit = (company) => {
+    setEditingCompany(company._id)
+
+    setEditForm({
+      name: company.name || '',
+      role: company.role || '',
+      package: company.package || '',
+      minimumCgpa: company.minimumCgpa || '',
+      lastDate: company.lastDate
+        ? company.lastDate.split('T')[0]
+        : '',
+      description: company.description || '',
+      registrationLink: company.registrationLink || ''
+    })
+  }
+
+  const handleSaveEdit = async (companyId) => {
+    try {
+      const res = await coordinatorApi.updateCompany(
+        companyId,
+        editForm
+      )
+
+      if (res.message === 'Company updated successfully!') {
+        setEditingCompany(null)
+        loadCompanies()
+      }
     } catch (error) {
       console.log('Error:', error)
     }
@@ -220,17 +254,154 @@ const CoordinatorCompanies = () => {
                   🔒 Set Closed
                 </button>
                 <button
+                  className='btn-primary'
+                  onClick={() => handleEdit(company)}
+                >
+                  ✏️ Edit
+                </button>
+                <button
                   className='btn-danger'
                   onClick={() => handleDelete(company._id)}
                 >
                   🗑️ Delete
                 </button>
               </div>
+              {editingCompany === company._id && (
+              <div
+                style={{
+                  background: '#f8f9fa',
+                  padding: '20px',
+                  borderRadius: '8px',
+                  marginTop: '10px',
+                  border: '1px solid #ddd'
+                }}
+              >
+                <h4>Edit Company</h4>
+
+                <div className='form-row'>
+                  <div className='form-group'>
+                    <label>Company Name</label>
+                    <input
+                      type='text'
+                      value={editForm.name}
+                      onChange={e =>
+                        setEditForm({
+                          ...editForm,
+                          name: e.target.value
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className='form-group'>
+                    <label>Job Role</label>
+                    <input
+                      type='text'
+                      value={editForm.role}
+                      onChange={e =>
+                        setEditForm({
+                          ...editForm,
+                          role: e.target.value
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className='form-row'>
+                  <div className='form-group'>
+                    <label>Package</label>
+                    <input
+                      type='text'
+                      value={editForm.package}
+                      onChange={e =>
+                        setEditForm({
+                          ...editForm,
+                          package: e.target.value
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className='form-group'>
+                    <label>Min CGPA</label>
+                    <input
+                      type='number'
+                      value={editForm.minimumCgpa}
+                      onChange={e =>
+                        setEditForm({
+                          ...editForm,
+                          minimumCgpa: e.target.value
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className='form-group'>
+                    <label>Last Date</label>
+                    <input
+                      type='date'
+                      value={editForm.lastDate}
+                      onChange={e =>
+                        setEditForm({
+                          ...editForm,
+                          lastDate: e.target.value
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className='form-group'>
+                  <label>Registration Link</label>
+                  <input
+                    type='url'
+                    value={editForm.registrationLink}
+                    onChange={e =>
+                      setEditForm({
+                        ...editForm,
+                        registrationLink: e.target.value
+                      })
+                    }
+                  />
+                </div>
+
+                <div className='form-group'>
+                  <label>Description</label>
+                  <textarea
+                    value={editForm.description}
+                    onChange={e =>
+                      setEditForm({
+                        ...editForm,
+                        description: e.target.value
+                      })
+                    }
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    className='btn-success'
+                    onClick={() => handleSaveEdit(company._id)}
+                  >
+                    💾 Save Changes
+                  </button>
+
+                  <button
+                    className='btn-danger'
+                    onClick={() => setEditingCompany(null)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
             </div>
           ))
         )}
       </div>
 
+      
     </Layout>
   )
 }

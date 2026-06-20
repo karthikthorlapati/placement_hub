@@ -135,6 +135,7 @@ const HeadStudents = () => {
                 <th>Roll Number</th>
                 <th>CGPA</th>
                 <th>Phone</th>
+                <th>Resume</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -147,6 +148,26 @@ const HeadStudents = () => {
                   <td>{student.rollNumber || 'N/A'}</td>
                   <td>{student.cgpa || 'N/A'}</td>
                   <td>{student.phone || 'N/A'}</td>
+                  <td>
+                    {student.resumeLink ? (
+                      <a
+                        href={student.resumeLink}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        style={{
+                          color: '#3498db',
+                          fontSize: '13px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        📄 View
+                      </a>
+                    ) : (
+                      <span style={{ color: '#e74c3c', fontSize: '12px' }}>
+                        Not added
+                      </span>
+                    )}
+                  </td>
                   <td>
                     <button
                       className='btn-danger'

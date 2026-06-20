@@ -3,22 +3,13 @@ import Layout from '../../components/Layout'
 import { studentApi } from '../../api'
 
 const Profile = () => {
-  const [profile, setProfile] = useState({
-    name: '',
-    email: '',
-    department: '',
-    rollNumber: '',
-    phone: '',
-    cgpa: ''
-  })
-  const [oldPassword, setOldPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [profileMsg, setProfileMsg] = useState('')
-  const [profileErr, setProfileErr] = useState('')
-  const [passMsg, setPassMsg] = useState('')
-  const [passErr, setPassErr] = useState('')
+  const [profile, setProfile] = useState(null)
+  const [completion, setCompletion] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState(false)
+  const [form, setForm] = useState({})
+  const [msg, setMsg] = useState('')
+  const [err, setErr] = useState('')
 
   useEffect(() => {
     loadProfile()
@@ -26,14 +17,20 @@ const Profile = () => {
 
   const loadProfile = async () => {
     try {
-      const data = await studentApi.getProfile()
-      setProfile({
-        name: data.name || '',
-        email: data.email || '',
-        department: data.department || '',
-        rollNumber: data.rollNumber || '',
-        phone: data.phone || '',
-        cgpa: data.cgpa || ''
+      const [profileData, completionData] = await Promise.all([
+        studentApi.getProfile(),
+        studentApi.getProfileCompletion()
+      ])
+      setProfile(profileData)
+      setCompletion(completionData)
+      setForm({
+        name: profileData.name || '',
+        phone: profileData.phone || '',
+        cgpa: profileData.cgpa || '',
+        resumeLink: profileData.resumeLink || '',
+        skills: profileData.skills || '',
+        linkedin: profileData.linkedin || '',
+        github: profileData.github || ''
       })
     } catch (error) {
       console.log('Error:', error)
@@ -42,63 +39,27 @@ const Profile = () => {
     }
   }
 
-  const handleUpdateProfile = async () => {
-    setProfileMsg('')
-    setProfileErr('')
+  const handleUpdate = async () => {
+    setMsg('')
+    setErr('')
     try {
-      const res = await studentApi.updateProfile({
-        name: profile.name,
-        phone: profile.phone,
-        department: profile.department,
-        rollNumber: profile.rollNumber,
-        cgpa: parseFloat(profile.cgpa) || 0
-      })
-
+      const res = await studentApi.updateProfile(form)
       if (res.message === 'Profile updated successfully!') {
-        setProfileMsg('Profile updated successfully! ✅')
-        localStorage.setItem('user', JSON.stringify({
-          ...JSON.parse(localStorage.getItem('user')),
-          name: profile.name
-        }))
+        setMsg('Profile updated successfully! ✅')
+        setEditing(false)
+        loadProfile()
       } else {
-        setProfileErr(res.message)
+        setErr(res.message)
       }
     } catch (error) {
-      setProfileErr('Something went wrong!')
+      setErr('Something went wrong!')
     }
   }
 
-  const handleChangePassword = async () => {
-    setPassMsg('')
-    setPassErr('')
-
-    if (newPassword !== confirmPassword) {
-      setPassErr('Passwords do not match!')
-      return
-    }
-
-    if (newPassword.length < 6) {
-      setPassErr('Password must be at least 6 characters!')
-      return
-    }
-
-    try {
-      const res = await studentApi.changePassword({
-        oldPassword,
-        newPassword
-      })
-
-      if (res.message === 'Password changed successfully!') {
-        setPassMsg('Password changed successfully! ✅')
-        setOldPassword('')
-        setNewPassword('')
-        setConfirmPassword('')
-      } else {
-        setPassErr(res.message)
-      }
-    } catch (error) {
-      setPassErr('Something went wrong!')
-    }
+  const getCompletionColor = (percentage) => {
+    if (percentage >= 80) return '#2ecc71'
+    if (percentage >= 50) return '#f39c12'
+    return '#e74c3c'
   }
 
   if (loading) return (
@@ -111,131 +72,370 @@ const Profile = () => {
     <Layout>
       <h2 className='page-title'>👤 My Profile</h2>
 
-      {/* Update Profile */}
-      <div className='section'>
-        <h3>Update Profile</h3>
+      {msg && <div className='success-msg'>{msg}</div>}
+      {err && <div className='error-msg'>{err}</div>}
 
-        {profileMsg && <div className='success-msg'>{profileMsg}</div>}
-        {profileErr && <div className='error-msg'>{profileErr}</div>}
-
-        <div className='form-row'>
-          <div className='form-group'>
-            <label>Full Name</label>
-            <input
-              type='text'
-              value={profile.name}
-              onChange={e => setProfile({...profile, name: e.target.value})}
-              placeholder='Your full name'
-            />
+      {/* Profile Completion */}
+      {completion && (
+        <div className='section'>
+          <h3>📊 Profile Completion</h3>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '15px',
+            marginBottom: '15px'
+          }}>
+            <div style={{
+              flex: 1,
+              background: '#f0f0f0',
+              borderRadius: '10px',
+              height: '20px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                width: `${completion.percentage}%`,
+                background: getCompletionColor(completion.percentage),
+                height: '100%',
+                borderRadius: '10px',
+                transition: 'width 0.5s ease'
+              }} />
+            </div>
+            <span style={{
+              fontWeight: 'bold',
+              color: getCompletionColor(completion.percentage),
+              minWidth: '45px'
+            }}>
+              {completion.percentage}%
+            </span>
           </div>
-          <div className='form-group'>
-            <label>Email</label>
-            <input
-              type='email'
-              value={profile.email}
-              disabled
-              style={{ background: '#f5f6fa' }}
-            />
+
+          {completion.missing.length > 0 && (
+            <div style={{
+              background: '#fff3cd',
+              padding: '10px 15px',
+              borderRadius: '8px',
+              border: '1px solid #ffc107'
+            }}>
+              <p style={{
+                color: '#856404',
+                fontSize: '13px',
+                marginBottom: '5px',
+                fontWeight: 'bold'
+              }}>
+                Complete your profile to improve visibility:
+              </p>
+              <p style={{ color: '#856404', fontSize: '13px' }}>
+                Missing: {completion.missing.join(', ')}
+              </p>
+            </div>
+          )}
+
+          {completion.percentage === 100 && (
+            <div style={{
+              background: '#d4edda',
+              padding: '10px 15px',
+              borderRadius: '8px',
+              border: '1px solid #28a745'
+            }}>
+              <p style={{ color: '#28a745', fontWeight: 'bold' }}>
+                🎉 Profile 100% Complete!
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Profile Info */}
+      {!editing ? (
+        <div className='section'>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            <h3>Personal Information</h3>
+            <button
+              className='btn-primary'
+              onClick={() => setEditing(true)}
+            >
+              ✏️ Edit Profile
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gap: '15px' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '15px'
+            }}>
+              <div style={{
+                background: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '8px'
+              }}>
+                <p style={{ color: '#7f8c8d', fontSize: '12px' }}>
+                  Full Name
+                </p>
+                <p style={{ fontWeight: 'bold', color: '#2c3e50' }}>
+                  {profile?.name || 'N/A'}
+                </p>
+              </div>
+              <div style={{
+                background: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '8px'
+              }}>
+                <p style={{ color: '#7f8c8d', fontSize: '12px' }}>Email</p>
+                <p style={{ fontWeight: 'bold', color: '#2c3e50' }}>
+                  {profile?.email || 'N/A'}
+                </p>
+              </div>
+              <div style={{
+                background: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '8px'
+              }}>
+                <p style={{ color: '#7f8c8d', fontSize: '12px' }}>
+                  Department
+                </p>
+                <p style={{ fontWeight: 'bold', color: '#2c3e50' }}>
+                  {profile?.department || 'N/A'}
+                </p>
+              </div>
+              <div style={{
+                background: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '8px'
+              }}>
+                <p style={{ color: '#7f8c8d', fontSize: '12px' }}>
+                  Roll Number
+                </p>
+                <p style={{ fontWeight: 'bold', color: '#2c3e50' }}>
+                  {profile?.rollNumber || 'N/A'}
+                </p>
+              </div>
+              <div style={{
+                background: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '8px'
+              }}>
+                <p style={{ color: '#7f8c8d', fontSize: '12px' }}>Phone</p>
+                <p style={{ fontWeight: 'bold', color: '#2c3e50' }}>
+                  {profile?.phone || 'N/A'}
+                </p>
+              </div>
+              <div style={{
+                background: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '8px'
+              }}>
+                <p style={{ color: '#7f8c8d', fontSize: '12px' }}>CGPA</p>
+                <p style={{
+                  fontWeight: 'bold',
+                  color: '#2c3e50',
+                  fontSize: '18px'
+                }}>
+                  {profile?.cgpa || 'N/A'}
+                </p>
+              </div>
+            </div>
+
+            {/* Skills */}
+            <div style={{
+              background: '#f8f9fa',
+              padding: '15px',
+              borderRadius: '8px'
+            }}>
+              <p style={{ color: '#7f8c8d', fontSize: '12px' }}>Skills</p>
+              <p style={{ fontWeight: 'bold', color: '#2c3e50' }}>
+                {profile?.skills || 'Not added yet'}
+              </p>
+            </div>
+
+            {/* Links */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr 1fr',
+              gap: '15px'
+            }}>
+              <div style={{
+                background: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '8px'
+              }}>
+                <p style={{ color: '#7f8c8d', fontSize: '12px' }}>
+                  Resume
+                </p>
+                {profile?.resumeLink ? (
+                  <a
+                    href={profile.resumeLink}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    style={{
+                      color: '#3498db',
+                      fontWeight: 'bold',
+                      fontSize: '13px'
+                    }}
+                  >
+                    📄 View Resume
+                  </a>
+                ) : (
+                  <p style={{ color: '#e74c3c', fontSize: '13px' }}>
+                    Not added
+                  </p>
+                )}
+              </div>
+              <div style={{
+                background: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '8px'
+              }}>
+                <p style={{ color: '#7f8c8d', fontSize: '12px' }}>
+                  LinkedIn
+                </p>
+                {profile?.linkedin ? (
+                  <a
+                    href={profile.linkedin}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    style={{
+                      color: '#0077b5',
+                      fontWeight: 'bold',
+                      fontSize: '13px'
+                    }}
+                  >
+                    🔗 LinkedIn
+                  </a>
+                ) : (
+                  <p style={{ color: '#e74c3c', fontSize: '13px' }}>
+                    Not added
+                  </p>
+                )}
+              </div>
+              <div style={{
+                background: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '8px'
+              }}>
+                <p style={{ color: '#7f8c8d', fontSize: '12px' }}>GitHub</p>
+                {profile?.github ? (
+                  <a
+                    href={profile.github}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    style={{
+                      color: '#333',
+                      fontWeight: 'bold',
+                      fontSize: '13px'
+                    }}
+                  >
+                    💻 GitHub
+                  </a>
+                ) : (
+                  <p style={{ color: '#e74c3c', fontSize: '13px' }}>
+                    Not added
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
+      ) : (
+        /* Edit Form */
+        <div className='section'>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            <h3>Edit Profile</h3>
+            <button
+              className='btn-danger'
+              onClick={() => setEditing(false)}
+            >
+              Cancel
+            </button>
+          </div>
 
-        <div className='form-row'>
-          <div className='form-group'>
-            <label>Department</label>
-            <input
-              type='text'
-              value={profile.department}
-              onChange={e => setProfile({
-                ...profile, department: e.target.value
-              })}
-              placeholder='Your department'
-            />
+          <div className='form-row'>
+            <div className='form-group'>
+              <label>Full Name</label>
+              <input
+                type='text'
+                value={form.name}
+                onChange={e => setForm({...form, name: e.target.value})}
+              />
+            </div>
+            <div className='form-group'>
+              <label>Phone</label>
+              <input
+                type='text'
+                value={form.phone}
+                onChange={e => setForm({...form, phone: e.target.value})}
+              />
+            </div>
           </div>
-          <div className='form-group'>
-            <label>Roll Number</label>
-            <input
-              type='text'
-              value={profile.rollNumber}
-              onChange={e => setProfile({
-                ...profile, rollNumber: e.target.value
-              })}
-              placeholder='Your roll number'
-            />
-          </div>
-        </div>
 
-        <div className='form-row'>
-          <div className='form-group'>
-            <label>Phone Number</label>
-            <input
-              type='text'
-              value={profile.phone}
-              onChange={e => setProfile({
-                ...profile, phone: e.target.value
-              })}
-              placeholder='Your phone number'
-            />
-          </div>
           <div className='form-group'>
             <label>CGPA</label>
             <input
               type='number'
-              value={profile.cgpa}
-              onChange={e => setProfile({
-                ...profile, cgpa: e.target.value
-              })}
-              placeholder='Your CGPA'
+              value={form.cgpa}
+              onChange={e => setForm({...form, cgpa: e.target.value})}
               min='0'
               max='10'
-              step='0.1'
+              step='0.01'
             />
           </div>
+
+          <div className='form-group'>
+            <label>Skills (comma separated)</label>
+            <input
+              type='text'
+              placeholder='e.g. React, Node.js, MongoDB, Python'
+              value={form.skills}
+              onChange={e => setForm({...form, skills: e.target.value})}
+            />
+          </div>
+
+          <div className='form-group'>
+            <label>Resume Link (Google Drive / PDF link)</label>
+            <input
+              type='url'
+              placeholder='e.g. https://drive.google.com/file/your-resume'
+              value={form.resumeLink}
+              onChange={e => setForm({...form, resumeLink: e.target.value})}
+            />
+          </div>
+
+          <div className='form-row'>
+            <div className='form-group'>
+              <label>LinkedIn Profile</label>
+              <input
+                type='url'
+                placeholder='e.g. https://linkedin.com/in/yourname'
+                value={form.linkedin}
+                onChange={e => setForm({...form, linkedin: e.target.value})}
+              />
+            </div>
+            <div className='form-group'>
+              <label>GitHub Profile</label>
+              <input
+                type='url'
+                placeholder='e.g. https://github.com/yourname'
+                value={form.github}
+                onChange={e => setForm({...form, github: e.target.value})}
+              />
+            </div>
+          </div>
+
+          <button className='btn-primary' onClick={handleUpdate}>
+            💾 Save Changes
+          </button>
         </div>
-
-        <button className='btn-primary' onClick={handleUpdateProfile}>
-          Update Profile
-        </button>
-      </div>
-
-      {/* Change Password */}
-      <div className='section'>
-        <h3>🔒 Change Password</h3>
-
-        {passMsg && <div className='success-msg'>{passMsg}</div>}
-        {passErr && <div className='error-msg'>{passErr}</div>}
-
-        <div className='form-group'>
-          <label>Old Password</label>
-          <input
-            type='password'
-            value={oldPassword}
-            onChange={e => setOldPassword(e.target.value)}
-            placeholder='Enter old password'
-          />
-        </div>
-        <div className='form-group'>
-          <label>New Password</label>
-          <input
-            type='password'
-            value={newPassword}
-            onChange={e => setNewPassword(e.target.value)}
-            placeholder='Enter new password'
-          />
-        </div>
-        <div className='form-group'>
-          <label>Confirm New Password</label>
-          <input
-            type='password'
-            value={confirmPassword}
-            onChange={e => setConfirmPassword(e.target.value)}
-            placeholder='Confirm new password'
-          />
-        </div>
-
-        <button className='btn-primary' onClick={handleChangePassword}>
-          Change Password
-        </button>
-      </div>
+      )}
 
     </Layout>
   )
