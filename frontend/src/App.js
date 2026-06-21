@@ -173,13 +173,13 @@ const App = () => {
             </ProtectedRoute>
           } />
 
-          <Route path='/head/statistics' element={
+          <Route path='/head/Statistics' element={
             <ProtectedRoute role='head'>
               <HeadStatistics />
             </ProtectedRoute>
           } />
 
-          <Route path='/coordinator/statistics' element={
+          <Route path='/coordinator/Statistics' element={
             <ProtectedRoute role='coordinator'>
               <CoordinatorStatistics />
             </ProtectedRoute>
