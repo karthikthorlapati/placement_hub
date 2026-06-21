@@ -29,68 +29,93 @@ document.getElementById('role').addEventListener('change', function () {
   }
 })
 
-// Handle form submission
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault()
 
-  const name = document.getElementById('name').value
-  const email = document.getElementById('email').value
-  const password = document.getElementById('password').value
   const role = document.getElementById('role').value
-  const department = document.getElementById('department').value.toUpperCase().trim()
-  const rollNumber = document.getElementById('rollNumber').value
-  const phone = document.getElementById('phone').value
+  const name = document.getElementById('name').value.trim()
+  const email = document.getElementById('email').value.trim()
+  const password = document.getElementById('password').value
+  const department = document.getElementById('department').value.trim()
+  const rollNumber = document.getElementById('rollNumber').value.trim()
+  const phone = document.getElementById('phone').value.trim()
   const cgpa = document.getElementById('cgpa').value
 
-  const errorMsg = document.getElementById('errorMsg')
-  const successMsg = document.getElementById('successMsg')
-
-  // Hide previous messages
-  errorMsg.style.display = 'none'
-  successMsg.style.display = 'none'
-
-  // Basic validation
+  // ✅ Frontend validation before sending
+  if (!name) {
+    alert('Please enter your name!')
+    return
+  }
+  if (!email) {
+    alert('Please enter your email!')
+    return
+  }
+  if (!password || password.length < 6) {
+    alert('Password must be at least 6 characters!')
+    return
+  }
   if (!role) {
-    errorMsg.style.display = 'block'
-    errorMsg.innerText = 'Please select a role!'
+    alert('Please select a role!')
     return
   }
 
+  if (role === 'student') {
+    if (!department) {
+      alert('Department is required!')
+      return
+    }
+    if (!rollNumber) {
+      alert('Roll Number is required!')
+      return
+    }
+    if (!phone || phone.length !== 10) {
+      alert('Phone number must be exactly 10 digits!')
+      return
+    }
+    if (!cgpa) {
+      alert('CGPA is required!')
+      return
+    }
+  }
+
+  if (role === 'coordinator') {
+    if (!department) {
+      alert('Department is required!')
+      return
+    }
+    if (!phone || phone.length !== 10) {
+      alert('Phone number must be exactly 10 digits!')
+      return
+    }
+  }
+
+  if (role === 'head') {
+    if (!phone || phone.length !== 10) {
+      alert('Phone number must be exactly 10 digits!')
+      return
+    }
+  }
+
+  // ✅ All validations passed, send to backend
   try {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name,
-        email,
-        password,
-        role,
-        department,
-        rollNumber,
-        phone,
-        cgpa: cgpa ? parseFloat(cgpa) : 0
+        name, email, password, role,
+        department, rollNumber, phone, cgpa
       })
     })
 
     const data = await response.json()
 
-    if (!response.ok) {
-      errorMsg.style.display = 'block'
-      errorMsg.innerText = data.message
-      return
+    if (data.message === 'User registered successfully') {
+      alert('Registration successful! Please login.')
+      window.location.href = '/login.html'
+    } else {
+      alert(data.message)
     }
-
-    // Show success message
-    successMsg.style.display = 'block'
-    successMsg.innerText = 'Registered successfully! Redirecting to login...'
-
-    // Redirect to login after 2 seconds
-    setTimeout(() => {
-      window.location.href = 'login.html'
-    }, 2000)
-
   } catch (error) {
-    errorMsg.style.display = 'block'
-    errorMsg.innerText = 'Something went wrong. Please try again.'
+    alert('Something went wrong!')
   }
 })

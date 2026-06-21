@@ -229,7 +229,7 @@ router.get('/check-application/:companyId', auth, async (req, res) => {
   }
 })
 
-// ✅ Update student profile
+// ✅ Update student profile (now includes department)
 router.put('/profile', auth, async (req, res) => {
   try {
     const {
@@ -239,7 +239,8 @@ router.put('/profile', auth, async (req, res) => {
       resumeLink,
       skills,
       linkedin,
-      github
+      github,
+      department
     } = req.body
 
     const updatedStudent = await User.findByIdAndUpdate(
@@ -251,9 +252,10 @@ router.put('/profile', auth, async (req, res) => {
         resumeLink,
         skills,
         linkedin,
-        github
+        github,
+        department: department ? department.toUpperCase().trim() : undefined
       },
-      { new: true }
+      { new: true, runValidators: true }
     ).select('-password')
 
     res.json({

@@ -30,7 +30,8 @@ const Profile = () => {
         resumeLink: profileData.resumeLink || '',
         skills: profileData.skills || '',
         linkedin: profileData.linkedin || '',
-        github: profileData.github || ''
+        github: profileData.github || '',
+        department: profileData.department || ''
       })
     } catch (error) {
       console.log('Error:', error)
@@ -42,6 +43,16 @@ const Profile = () => {
   const handleUpdate = async () => {
     setMsg('')
     setErr('')
+
+    if (form.department !== profile.department) {
+      const confirmed = window.confirm(
+        `Warning: You are changing your department from "${profile.department}" to "${form.department}". This will change which companies and announcements you see! Are you sure you want to continue?`
+      )
+      if (!confirmed) {
+        return
+      }
+    }
+
     try {
       const res = await studentApi.updateProfile(form)
       if (res.message === 'Profile updated successfully!') {
@@ -376,6 +387,27 @@ const Profile = () => {
                 onChange={e => setForm({...form, phone: e.target.value})}
               />
             </div>
+          </div>
+
+          <div className='form-group'>
+            <label>
+              Department{' '}
+              <span style={{
+                color: '#e74c3c',
+                fontSize: '11px',
+                marginLeft: '8px'
+              }}>
+                ⚠️ Change carefully — affects which companies you see!
+              </span>
+            </label>
+            <input
+              type='text'
+              placeholder='e.g. CSE, ECE, AIML'
+              value={form.department}
+              onChange={e => setForm({
+                ...form, department: e.target.value.toUpperCase()
+              })}
+            />
           </div>
 
           <div className='form-group'>
