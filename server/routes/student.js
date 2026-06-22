@@ -10,7 +10,7 @@ const sendNotification = require('../utils/sendNotification')
 
 
 
-// ✅ Get active companies — exclude expired
+// ✅ Get companies — filtered by university
 router.get('/companies', auth, async (req, res) => {
   try {
     const student = await User.findById(req.user.userId)
@@ -18,11 +18,12 @@ router.get('/companies', auth, async (req, res) => {
     const today = new Date()
 
     const companies = await Company.find({
+      university: req.user.universityId,  // ← KEY FILTER
       status: 'active',
-      lastDate: { $gte: today },  // ✅ Only future dates
+      lastDate: { $gte: today },
       $or: [
         { department: department },
-        { department: { $in: ['all', 'ALL', 'All'] } }
+        { department: { $in: ['all', 'ALL'] } }
       ]
     })
 
@@ -37,30 +38,37 @@ router.get('/companies', auth, async (req, res) => {
       lastDate: company.lastDate,
       registrationLink: company.registrationLink,
       status: company.status,
-      createdBy: company.createdBy,
       createdAt: company.createdAt,
       isEligible: student.cgpa >= company.minimumCgpa
     }))
 
     res.json(companiesWithEligibility)
   } catch (error) {
-    console.log('Error:', error)
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
-// ✅ Apply for company with notification + timeline
+
+// ✅ Apply — validate same university
 router.post('/apply/:companyId', auth, async (req, res) => {
   try {
     const company = await Company.findById(req.params.companyId)
+
     if (!company) {
       return res.status(404).json({ message: 'Company not found!' })
+    }
+
+    // ✅ Security check — company must belong to same university
+    if (company.university?.toString() !== req.user.universityId?.toString()) {
+      return res.status(403).json({
+        message: 'You cannot apply to companies from other universities!'
+      })
     }
 
     const student = await User.findById(req.user.userId)
 
     if (student.cgpa < company.minimumCgpa) {
       return res.status(403).json({
-        message: `You need minimum ${company.minimumCgpa} CGPA to apply! Your CGPA is ${student.cgpa}`
+        message: `Minimum ${company.minimumCgpa} CGPA required!`
       })
     }
 
@@ -71,16 +79,15 @@ router.post('/apply/:companyId', auth, async (req, res) => {
 
     if (existingApplication) {
       return res.status(400).json({
-        message: 'Already applied for this company!'
+        message: 'Already applied!'
       })
     }
 
     const application = new Application({
       student: req.user.userId,
       company: req.params.companyId,
-      timeline: [
-        { status: 'applied', date: new Date() }
-      ]
+      university: req.user.universityId,  // ← NEW
+      timeline: [{ status: 'applied', date: new Date() }]
     })
 
     await application.save()

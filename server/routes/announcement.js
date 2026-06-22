@@ -5,7 +5,7 @@ const checkRole = require('../middleware/role')
 const Announcement = require('../models/Announcement')
 const User = require('../models/User')
 
-// ✅ Get announcements for student
+// ✅ Get announcements for student — same university
 router.get('/student', auth, async (req, res) => {
   try {
     const student = await User.findById(req.user.userId)
@@ -13,6 +13,7 @@ router.get('/student', auth, async (req, res) => {
     const now = new Date()
 
     const announcements = await Announcement.find({
+      university: req.user.universityId,  // ← KEY FILTER
       isActive: true,
       expiryDate: { $gte: now },
       $or: [
@@ -25,7 +26,6 @@ router.get('/student', auth, async (req, res) => {
 
     res.json(announcements)
   } catch (error) {
-    console.log('Error:', error)
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
@@ -75,8 +75,7 @@ router.get('/all', auth,
     }
   }
 )
-
-// ✅ Create announcement
+// ✅ Create announcement — auto-tagged with university
 router.post('/', auth,
   checkRole('coordinator', 'head', 'admin'),
   async (req, res) => {
@@ -90,15 +89,9 @@ router.post('/', auth,
         })
       }
 
-      if (!expiryDate) {
+      if (!expiryDate || new Date(expiryDate) <= new Date()) {
         return res.status(400).json({
-          message: 'Expiry date is required!'
-        })
-      }
-
-      if (new Date(expiryDate) <= new Date()) {
-        return res.status(400).json({
-          message: 'Expiry date must be in the future!'
+          message: 'Valid future expiry date required!'
         })
       }
 
@@ -107,6 +100,7 @@ router.post('/', auth,
         message,
         postedBy: req.user.userId,
         postedByRole: req.user.role,
+        university: req.user.universityId,  // ← KEY
         department: department || poster.department || 'all',
         expiryDate: new Date(expiryDate)
       })
@@ -117,10 +111,7 @@ router.post('/', auth,
         announcement
       })
     } catch (error) {
-      res.status(500).json({
-        message: 'Server error',
-        error: error.message
-      })
+      res.status(500).json({ message: 'Server error', error: error.message })
     }
   }
 )

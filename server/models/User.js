@@ -19,6 +19,12 @@ const userSchema = new mongoose.Schema({
     enum: ['student', 'coordinator', 'head', 'admin'],
     required: true
   },
+  // ✅ NEW — links user to their university
+  university: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'University',
+    default: null
+  },
   department: {
     type: String,
     default: '',

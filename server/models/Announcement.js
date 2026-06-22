@@ -19,6 +19,12 @@ const announcementSchema = new mongoose.Schema({
     enum: ['coordinator', 'head', 'admin'],
     required: true
   },
+  // ✅ NEW — links announcement to university
+  university: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'University',
+    default: null
+  },
   department: {
     type: String,
     default: 'all',

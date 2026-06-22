@@ -10,7 +10,7 @@ const adminRoutes = require('./routes/admin')
 const headRoutes = require('./routes/head')
 const notificationRoutes = require('./routes/notification')
 const announcementRoutes = require('./routes/announcement')
-
+const universityRoutes = require('./routes/university')  // ← NEW
 
 const app = express()
 app.use(express.json())
@@ -24,10 +24,8 @@ app.use(cors({
   credentials: true
 }))
 
-// Connect Database
 connectDB()
 
-// Routes
 app.use('/api/auth', authRoutes)
 app.use('/api/student', studentRoutes)
 app.use('/api/coordinator', coordinatorRoutes)
@@ -35,9 +33,8 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/head', headRoutes)
 app.use('/api/notifications', notificationRoutes)
 app.use('/api/announcements', announcementRoutes)
+app.use('/api/universities', universityRoutes)  // ← NEW
 
-
-// Test route
 app.get('/', (req, res) => {
   res.json({ message: 'Placement Hub Server Running!' })
 })

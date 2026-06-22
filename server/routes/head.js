@@ -57,12 +57,15 @@ router.get('/departments', auth, checkRole('head', 'admin'),
   }
 )
 
-// ✅ Get all students with resume
+// ✅ Get all students — same university only
 router.get('/students', auth, checkRole('head', 'admin'),
   async (req, res) => {
     try {
       const { department } = req.query
-      const filter = { role: 'student' }
+      const filter = {
+        role: 'student',
+        university: req.user.universityId  // ← KEY FILTER
+      }
 
       if (department && department !== 'all') {
         filter.department = {
@@ -78,17 +81,20 @@ router.get('/students', auth, checkRole('head', 'admin'),
   }
 )
 
-// ✅ Get all companies
+// ✅ Get all companies — same university only
 router.get('/companies', auth, checkRole('head', 'admin'),
   async (req, res) => {
     try {
-      const companies = await Company.find()
+      const companies = await Company.find({
+        university: req.user.universityId  // ← KEY FILTER
+      })
       res.json(companies)
     } catch (error) {
       res.status(500).json({ message: 'Server error', error: error.message })
     }
   }
 )
+
 
 // ✅ Get all applications
 router.get('/applications', auth, checkRole('head', 'admin'),
@@ -107,29 +113,37 @@ router.get('/applications', auth, checkRole('head', 'admin'),
   }
 )
 
-// ✅ Get college wide stats
+// ✅ Get stats — same university only
 router.get('/stats', auth, checkRole('head', 'admin'),
   async (req, res) => {
     try {
-      const totalStudents = await User.countDocuments({ role: 'student' })
+      const universityFilter = { university: req.user.universityId }
 
+      const totalStudents = await User.countDocuments({
+        ...universityFilter,
+        role: 'student'
+      })
       const totalCoordinators = await User.countDocuments({
+        ...universityFilter,
         role: 'coordinator'
       })
-
-      const totalCompanies = await Company.countDocuments()
-      const totalApplications = await Application.countDocuments()
-
+      const totalCompanies = await Company.countDocuments(universityFilter)
+      const totalApplications = await Application.countDocuments(
+        universityFilter
+      )
       const totalSelected = await Application.countDocuments({
+        ...universityFilter,
         status: 'selected'
       })
       const totalShortlisted = await Application.countDocuments({
+        ...universityFilter,
         status: 'shortlisted'
       })
 
       const allStudents = await User.find({
+        ...universityFilter,
         role: 'student',
-        department: { $ne: '', $ne: null }
+        department: { $ne: '' }
       }).select('department')
 
       const deptCounts = {}
@@ -153,7 +167,6 @@ router.get('/stats', auth, checkRole('head', 'admin'),
         deptStats
       })
     } catch (error) {
-      console.log('Stats error:', error)
       res.status(500).json({ message: 'Server error', error: error.message })
     }
   }

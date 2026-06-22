@@ -7,20 +7,19 @@ const Application = require('../models/Application')
 const User = require('../models/User')
 const Notification = require('../models/Notification')
 
-// ✅ Get students with resume link
+// ✅ Get students — same university + same department
 router.get('/students', auth, async (req, res) => {
   try {
-    const coordinator = await User.findById(req.user.userId)
-    const department = coordinator.department.toUpperCase().trim()
-
     const students = await User.find({
       role: 'student',
-      department: { $regex: new RegExp(`^${department}$`, 'i') }
+      university: req.user.universityId,  // ← KEY FILTER
+      department: {
+        $regex: new RegExp(`^${req.user.department}$`, 'i')
+      }
     }).select('-password')
 
     res.json(students)
   } catch (error) {
-    console.log('REAL ERROR:', error)
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
@@ -117,38 +116,32 @@ router.get('/departments', auth,
   }
 )
 
-// ✅ Add company — coordinator OR head
+// ✅ Add company — auto-tagged with university
 router.post('/companies', auth,
   checkRole('coordinator', 'head'),
   async (req, res) => {
     try {
       const poster = await User.findById(req.user.userId)
       const {
-        name,
-        description,
-        role,
-        package: pkg,
-        minimumCgpa,
-        lastDate,
-        registrationLink,
-        department
+        name, description, role,
+        package: pkg, minimumCgpa,
+        lastDate, registrationLink, department
       } = req.body
 
       let companyDepartment
       if (poster.role === 'coordinator') {
         companyDepartment = poster.department.toUpperCase().trim()
-      } else if (poster.role === 'head') {
+      } else {
         companyDepartment = department ?
           department.toUpperCase().trim() : 'all'
       }
 
       const company = new Company({
-        name,
-        description,
-        role,
+        name, description, role,
         package: pkg,
         minimumCgpa: minimumCgpa || 0,
         department: companyDepartment,
+        university: req.user.universityId,  // ← KEY
         lastDate,
         registrationLink: registrationLink || '',
         createdBy: req.user.userId
@@ -160,32 +153,26 @@ router.post('/companies', auth,
         company
       })
     } catch (error) {
-      console.log('REAL ERROR:', error)
-      res.status(500).json({
-        message: 'Server error',
-        error: error.message
-      })
+      res.status(500).json({ message: 'Server error', error: error.message })
     }
   }
 )
 
-// ✅ Get companies by coordinator's department
+// ✅ Get companies — same university
 router.get('/companies', auth, async (req, res) => {
   try {
-    const coordinator = await User.findById(req.user.userId)
-    const department = coordinator.department.toUpperCase().trim()
+    const department = req.user.department.toUpperCase().trim()
 
-    // Show companies for their department OR all departments
     const companies = await Company.find({
+      university: req.user.universityId,  // ← KEY FILTER
       $or: [
         { department: department },
-        { department: { $in: ['all', 'ALL', 'All'] } }
+        { department: { $in: ['all', 'ALL'] } }
       ]
     })
 
     res.json(companies)
   } catch (error) {
-    console.log('REAL ERROR:', error)
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
@@ -263,21 +250,20 @@ router.delete('/companies/:companyId', auth,
 
 
 
-// Get applications
+// ✅ Get applications for a company — same university
 router.get('/applications/:companyId', auth, async (req, res) => {
   try {
     const applications = await Application.find({
-      company: req.params.companyId
+      company: req.params.companyId,
+      university: req.user.universityId  // ← KEY FILTER
     }).populate('student', '-password')
+      .populate('company')
 
-    res.json(applications)
-
+    res.json(applications.filter(
+      app => app.student !== null && app.company !== null
+    ))
   } catch (error) {
-    console.log("REAL ERROR:", error)
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    })
+    res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
 

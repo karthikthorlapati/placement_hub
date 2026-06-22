@@ -24,10 +24,17 @@ const companySchema = new mongoose.Schema({
     max: 10
   },
   department: {
-  type: String,
-  default: 'all',
-  set: (val) => val && val !== 'all' ? val.toUpperCase().trim() : 'all'
-},
+    type: String,
+    default: 'all',
+    set: (val) => val && val.toLowerCase() !== 'all' ?
+      val.toUpperCase().trim() : 'all'
+  },
+  // ✅ NEW — links company to university
+  university: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'University',
+    default: null
+  },
   lastDate: {
     type: Date,
     required: true
