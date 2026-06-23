@@ -1,21 +1,40 @@
 import '../styles/navbar.css'
 import { useAuth } from '../context/AuthContext'
 
+import { useAuth } from '../context/AuthContext'
+import '../styles/navbar.css'
+
 const Navbar = () => {
   const { user, logout } = useAuth()
 
+  const university = JSON.parse(
+    localStorage.getItem('university') || 'null'
+  )
+
   return (
-    <nav className='navbar'>
-      <h1 className='navbar-logo'>🎓 Placement Hub</h1>
+    <div className='navbar'>
+      <div className='navbar-brand'>
+        🎓 Placement Hub
+        {university && (
+          <span style={{
+            fontSize: '12px',
+            background: '#3498db',
+            color: 'white',
+            padding: '2px 8px',
+            borderRadius: '10px',
+            marginLeft: '10px'
+          }}>
+            {university.name}
+          </span>
+        )}
+      </div>
       <div className='navbar-right'>
-        <span className='navbar-welcome'>
-          Hello, {user?.name}!
-        </span>
-        <button className='navbar-logout' onClick={logout}>
+        <span>Hello, {user?.name}!</span>
+        <button className='btn-logout' onClick={logout}>
           Logout
         </button>
       </div>
-    </nav>
+    </div>
   )
 }
 
