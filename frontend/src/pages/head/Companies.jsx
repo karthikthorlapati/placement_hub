@@ -19,6 +19,19 @@ const HeadCompanies = () => {
     department: 'all'
   })
 
+  // ✅ Edit states
+  const [editingCompany, setEditingCompany] = useState(null)
+  const [editForm, setEditForm] = useState({
+    name: '',
+    role: '',
+    package: '',
+    minimumCgpa: '',
+    lastDate: '',
+    description: '',
+    registrationLink: ''
+  })
+  const [editMsg, setEditMsg] = useState('')
+
   useEffect(() => {
     loadCompanies()
   }, [])
@@ -94,6 +107,46 @@ const HeadCompanies = () => {
     } catch (error) {
       console.log('Error:', error)
     }
+  }
+
+  // ✅ Open edit form for a company
+  const handleEdit = (company) => {
+    setEditingCompany(company._id)
+    setEditMsg('')
+    setEditForm({
+      name: company.name || '',
+      role: company.role || '',
+      package: company.package || '',
+      minimumCgpa: company.minimumCgpa || '',
+      lastDate: company.lastDate
+        ? new Date(company.lastDate).toISOString().split('T')[0]
+        : '',
+      description: company.description || '',
+      registrationLink: company.registrationLink || ''
+    })
+  }
+
+  // ✅ Save edited company
+  const handleSaveEdit = async (companyId) => {
+    try {
+      const res = await headApi.updateCompany(companyId, editForm)
+      if (res.message === 'Company updated successfully!') {
+        setEditMsg('Company updated successfully! ✅')
+        setEditingCompany(null)
+        loadCompanies()
+      } else {
+        setEditMsg(res.message || 'Update failed!')
+      }
+    } catch (error) {
+      setEditMsg('Something went wrong!')
+      console.log('Error:', error)
+    }
+  }
+
+  // ✅ Cancel edit
+  const handleCancelEdit = () => {
+    setEditingCompany(null)
+    setEditMsg('')
   }
 
   if (loading) return (
@@ -215,64 +268,198 @@ const HeadCompanies = () => {
       {/* Companies List */}
       <div className='section'>
         <h3>📋 All Companies ({companies.length})</h3>
+
+        {editMsg && <div className='success-msg'>{editMsg}</div>}
+
         {companies.length === 0 ? (
           <p style={{ color: '#7f8c8d' }}>No companies added yet!</p>
         ) : (
           companies.map(company => (
-            <div key={company._id} className='company-card'>
-              <div className='company-card-header'>
-                <h3>{company.name}</h3>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <span style={{
-                    background: '#f0f0f0',
-                    padding: '4px 10px',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    color: '#555'
-                  }}>
-                    {company.department === 'all' ? '🌍 All Depts' : company.department}
-                  </span>
-                  <span className={`badge badge-${company.status}`}>
-                    {company.status}
-                  </span>
+            <div key={company._id}>
+
+              {/* Company Card */}
+              <div className='company-card'>
+                <div className='company-card-header'>
+                  <h3>{company.name}</h3>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <span style={{
+                      background: '#f0f0f0',
+                      padding: '4px 10px',
+                      borderRadius: '20px',
+                      fontSize: '12px',
+                      color: '#555'
+                    }}>
+                      {company.department === 'all'
+                        ? '🌍 All Depts'
+                        : company.department}
+                    </span>
+                    <span className={`badge badge-${company.status}`}>
+                      {company.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className='company-card-details'>
+                  <p>💼 <strong>Role:</strong> {company.role}</p>
+                  <p>💰 <strong>Package:</strong> {company.package}</p>
+                  <p>🎓 <strong>Min CGPA:</strong> {company.minimumCgpa || 0}</p>
+                  <p>📅 <strong>Last Date:</strong> {formatDate(company.lastDate)}</p>
+                  {company.description && (
+                    <p>📝 <strong>Description:</strong> {company.description}</p>
+                  )}
+                  {company.registrationLink && company.registrationLink !== '' && (
+                    <p>🔗 <strong>Registration:</strong>{' '}
+                      <a
+                        href={company.registrationLink}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        style={{ color: '#9b59b6' }}
+                      >
+                        {company.registrationLink}
+                      </a>
+                    </p>
+                  )}
+                </div>
+
+                <div className='company-card-actions'>
+                  <button
+                    className='btn-primary'
+                    onClick={() => handleEdit(company)}
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    className='btn-success'
+                    onClick={() => handleUpdateStatus(company._id, 'active')}
+                  >
+                    ✅ Set Active
+                  </button>
+                  <button
+                    className='btn-warning'
+                    onClick={() => handleUpdateStatus(company._id, 'closed')}
+                  >
+                    🔒 Set Closed
+                  </button>
+                  <button
+                    className='btn-danger'
+                    onClick={() => handleDelete(company._id)}
+                  >
+                    🗑️ Delete
+                  </button>
                 </div>
               </div>
 
-              <div className='company-card-details'>
-                <p>💼 <strong>Role:</strong> {company.role}</p>
-                <p>💰 <strong>Package:</strong> {company.package}</p>
-                <p>🎓 <strong>Min CGPA:</strong> {company.minimumCgpa || 0}</p>
-                <p>📅 <strong>Last Date:</strong> {formatDate(company.lastDate)}</p>
-                
-                {company.description && (
-                  <p>📝 <strong>Description:</strong> {company.description}</p>
-                )}
-                
-                {company.registrationLink && company.registrationLink !== '' && (
-                  <p>🔗 <strong>Registration:</strong> <a href={company.registrationLink} target='_blank' rel='noopener noreferrer' style={{ color: '#9b59b6' }}>{company.registrationLink}</a></p>
-                )}
-              </div>
+              {/* Edit Form — appears below the card when editing */}
+              {editingCompany === company._id && (
+                <div style={{
+                  background: '#f8f9fa',
+                  border: '2px solid #3498db',
+                  borderRadius: '8px',
+                  padding: '20px',
+                  marginTop: '-10px',
+                  marginBottom: '15px'
+                }}>
+                  <h4 style={{ color: '#2c3e50', marginBottom: '15px' }}>
+                    ✏️ Editing: {company.name}
+                  </h4>
 
-              <div className='company-card-actions'>
-                <button
-                  className='btn-success'
-                  onClick={() => handleUpdateStatus(company._id, 'active')}
-                >
-                  ✅ Set Active
-                </button>
-                <button
-                  className='btn-warning'
-                  onClick={() => handleUpdateStatus(company._id, 'closed')}
-                >
-                  🔒 Set Closed
-                </button>
-                <button
-                  className='btn-danger'
-                  onClick={() => handleDelete(company._id)}
-                >
-                  🗑️ Delete
-                </button>
-              </div>
+                  <div className='form-row'>
+                    <div className='form-group'>
+                      <label>Company Name</label>
+                      <input
+                        type='text'
+                        value={editForm.name}
+                        onChange={e => setEditForm({
+                          ...editForm, name: e.target.value
+                        })}
+                      />
+                    </div>
+                    <div className='form-group'>
+                      <label>Job Role</label>
+                      <input
+                        type='text'
+                        value={editForm.role}
+                        onChange={e => setEditForm({
+                          ...editForm, role: e.target.value
+                        })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className='form-row'>
+                    <div className='form-group'>
+                      <label>Package</label>
+                      <input
+                        type='text'
+                        value={editForm.package}
+                        onChange={e => setEditForm({
+                          ...editForm, package: e.target.value
+                        })}
+                      />
+                    </div>
+                    <div className='form-group'>
+                      <label>Min CGPA</label>
+                      <input
+                        type='number'
+                        value={editForm.minimumCgpa}
+                        onChange={e => setEditForm({
+                          ...editForm, minimumCgpa: e.target.value
+                        })}
+                        min='0'
+                        max='10'
+                        step='0.1'
+                      />
+                    </div>
+                    <div className='form-group'>
+                      <label>Last Date</label>
+                      <input
+                        type='date'
+                        value={editForm.lastDate}
+                        onChange={e => setEditForm({
+                          ...editForm, lastDate: e.target.value
+                        })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className='form-group'>
+                    <label>Registration Link</label>
+                    <input
+                      type='url'
+                      value={editForm.registrationLink}
+                      onChange={e => setEditForm({
+                        ...editForm, registrationLink: e.target.value
+                      })}
+                    />
+                  </div>
+
+                  <div className='form-group'>
+                    <label>Description</label>
+                    <textarea
+                      value={editForm.description}
+                      onChange={e => setEditForm({
+                        ...editForm, description: e.target.value
+                      })}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      className='btn-success'
+                      onClick={() => handleSaveEdit(company._id)}
+                    >
+                      💾 Save Changes
+                    </button>
+                    <button
+                      className='btn-danger'
+                      onClick={handleCancelEdit}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
             </div>
           ))
         )}
