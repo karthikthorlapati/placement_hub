@@ -1,6 +1,6 @@
-const API_URL = 'http://localhost:5000/api'
 
 let verifiedUniversityId = null
+let generatedCode = null
 
 // ✅ Show/hide fields based on role
 document.getElementById('role').addEventListener('change', function () {

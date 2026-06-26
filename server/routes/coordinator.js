@@ -299,29 +299,61 @@ router.put('/applications/:applicationId', auth, async (req, res) => {
   }
 })
 
-// Dashboard stats
+// ✅ Get coordinator stats — filtered by university AND department
 router.get('/stats', auth, async (req, res) => {
   try {
-    const totalStudents = await User.countDocuments({ role: 'student' })
-    const totalCompanies = await Company.countDocuments()
-    const totalApplications = await Application.countDocuments()
+    const coordinator = await User.findById(req.user.userId)
+    const department = coordinator.department.toUpperCase().trim()
+
+    // Count students in coordinator's department only
+    const totalStudents = await User.countDocuments({
+      role: 'student',
+      university: req.user.universityId,
+      department: { $regex: new RegExp(`^${department}$`, 'i') }
+    })
+
+    // Count companies for coordinator's department only
+    const totalCompanies = await Company.countDocuments({
+      university: req.user.universityId,
+      $or: [
+        { department: { $regex: new RegExp(`^${department}$`, 'i') } },
+        { department: { $in: ['all', 'ALL'] } }
+      ]
+    })
+
+    // Count applications for coordinator's department companies
+    const allCompanies = await Company.find({
+      university: req.user.universityId,
+      $or: [
+        { department: { $regex: new RegExp(`^${department}$`, 'i') } },
+        { department: { $in: ['all', 'ALL'] } }
+      ]
+    }).select('_id')
+
+    const companyIds = allCompanies.map(c => c._id)
+
+    const totalApplications = await Application.countDocuments({
+      company: { $in: companyIds },
+      university: req.user.universityId
+    })
+
+    const totalSelected = await Application.countDocuments({
+      company: { $in: companyIds },
+      university: req.user.universityId,
+      status: 'selected'
+    })
 
     res.json({
       totalStudents,
       totalCompanies,
-      totalApplications
+      totalApplications,
+      totalSelected
     })
-
   } catch (error) {
-    console.log("REAL ERROR:", error)
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    })
+    console.log('Stats error:', error)
+    res.status(500).json({ message: 'Server error', error: error.message })
   }
 })
-// ✅ Get company report - who applied and who didn't
-// ✅ Get company report
 // ✅ Get company report filtered by department
 router.get('/company-report/:companyId', auth, async (req, res) => {
   try {
