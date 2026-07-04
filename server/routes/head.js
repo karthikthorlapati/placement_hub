@@ -257,9 +257,10 @@ router.post('/process-shortlist/:companyId',
       }
 
       const allApplications = await Application.find({
-        company: companyId,
-        status: 'applied'
-      }).populate('student')
+  company: companyId,
+  university: req.user.universityId,
+  status: 'applied'
+}).populate('student')
 
       const validApplications = allApplications.filter(
         app => app.student !== null

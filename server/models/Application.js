@@ -11,6 +11,11 @@ const applicationSchema = new mongoose.Schema({
     ref: 'Company',
     required: true
   },
+  university: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'University',
+    default: null
+  },
   status: {
     type: String,
     enum: ['applied', 'shortlisted', 'selected', 'rejected'],
