@@ -18,8 +18,6 @@ const HeadCompanies = () => {
     registrationLink: '',
     department: 'all'
   })
-
-  // ✅ Edit states
   const [editingCompany, setEditingCompany] = useState(null)
   const [editForm, setEditForm] = useState({
     name: '',
@@ -50,12 +48,10 @@ const HeadCompanies = () => {
   const handleAddCompany = async () => {
     setFormMsg('')
     setFormErr('')
-
     if (!form.name || !form.role || !form.package || !form.lastDate) {
       setFormErr('Please fill all required fields!')
       return
     }
-
     try {
       const res = await headApi.addCompany({
         name: form.name,
@@ -67,9 +63,8 @@ const HeadCompanies = () => {
         registrationLink: form.registrationLink,
         department: form.department
       })
-
       if (res.message === 'Company added successfully!') {
-        setFormMsg('Company added successfully! ✅')
+        setFormMsg('Company added successfully!')
         setForm({
           name: '',
           role: '',
@@ -86,7 +81,6 @@ const HeadCompanies = () => {
       }
     } catch (error) {
       setFormErr('Something went wrong!')
-      console.log('Error:', error)
     }
   }
 
@@ -109,7 +103,6 @@ const HeadCompanies = () => {
     }
   }
 
-  // ✅ Open edit form for a company
   const handleEdit = (company) => {
     setEditingCompany(company._id)
     setEditMsg('')
@@ -126,24 +119,34 @@ const HeadCompanies = () => {
     })
   }
 
-  // ✅ Save edited company
   const handleSaveEdit = async (companyId) => {
+    if (!editForm.name || !editForm.role ||
+        !editForm.package || !editForm.lastDate) {
+      setEditMsg('Please fill all required fields!')
+      return
+    }
     try {
-      const res = await headApi.updateCompany(companyId, editForm)
+      const res = await headApi.updateCompany(companyId, {
+        name: editForm.name,
+        role: editForm.role,
+        package: editForm.package,
+        minimumCgpa: parseFloat(editForm.minimumCgpa) || 0,
+        lastDate: editForm.lastDate,
+        description: editForm.description,
+        registrationLink: editForm.registrationLink
+      })
       if (res.message === 'Company updated successfully!') {
-        setEditMsg('Company updated successfully! ✅')
         setEditingCompany(null)
+        setEditMsg('')
         loadCompanies()
       } else {
         setEditMsg(res.message || 'Update failed!')
       }
     } catch (error) {
       setEditMsg('Something went wrong!')
-      console.log('Error:', error)
     }
   }
 
-  // ✅ Cancel edit
   const handleCancelEdit = () => {
     setEditingCompany(null)
     setEditMsg('')
@@ -161,7 +164,7 @@ const HeadCompanies = () => {
 
       {/* Add Company Form */}
       <div className='section'>
-        <h3>➕ Add New Company</h3>
+        <h3>Add New Company</h3>
         <p style={{ color: '#7f8c8d', fontSize: '13px', marginBottom: '15px' }}>
           As Placement Head you can add companies for specific
           departments or all departments
@@ -207,10 +210,10 @@ const HeadCompanies = () => {
               type='number'
               placeholder='e.g. 7.5'
               value={form.minimumCgpa}
-              onChange={e => setForm({...form, minimumCgpa: e.target.value})}
-              min='0'
-              max='10'
-              step='0.1'
+              onChange={e => setForm({
+                ...form, minimumCgpa: e.target.value
+              })}
+              min='0' max='10' step='0.1'
             />
           </div>
           <div className='form-group'>
@@ -229,7 +232,7 @@ const HeadCompanies = () => {
             value={form.department}
             onChange={e => setForm({...form, department: e.target.value})}
           >
-            <option value='all'>🌍 All Departments</option>
+            <option value='all'>All Departments</option>
             <option value='CSE'>CSE</option>
             <option value='AIML'>AIML</option>
             <option value='ECE'>ECE</option>
@@ -267,9 +270,7 @@ const HeadCompanies = () => {
 
       {/* Companies List */}
       <div className='section'>
-        <h3>📋 All Companies ({companies.length})</h3>
-
-        {editMsg && <div className='success-msg'>{editMsg}</div>}
+        <h3>All Companies ({companies.length})</h3>
 
         {companies.length === 0 ? (
           <p style={{ color: '#7f8c8d' }}>No companies added yet!</p>
@@ -290,7 +291,7 @@ const HeadCompanies = () => {
                       color: '#555'
                     }}>
                       {company.department === 'all'
-                        ? '🌍 All Depts'
+                        ? 'All Depts'
                         : company.department}
                     </span>
                     <span className={`badge badge-${company.status}`}>
@@ -300,17 +301,28 @@ const HeadCompanies = () => {
                 </div>
 
                 <div className='company-card-details'>
-                  <p>💼 <strong>Role:</strong> {company.role}</p>
-                  <p>💰 <strong>Package:</strong> {company.package}</p>
-                  <p>🎓 <strong>Min CGPA:</strong> {company.minimumCgpa || 0}</p>
-                  <p>📅 <strong>Last Date:</strong> {formatDate(company.lastDate)}</p>
+                  <p>
+                    <strong>Role:</strong> {company.role}
+                  </p>
+                  <p>
+                    <strong>Package:</strong> {company.package}
+                  </p>
+                  <p>
+                    <strong>Min CGPA:</strong> {company.minimumCgpa || 0}
+                  </p>
+                  <p>
+                    <strong>Last Date:</strong> {formatDate(company.lastDate)}
+                  </p>
                   {company.description && (
-                    <p>📝 <strong>Description:</strong> {company.description}</p>
+                    <p>
+                      <strong>Description:</strong> {company.description}
+                    </p>
                   )}
-                  {company.registrationLink && company.registrationLink !== '' && (
-                    <p>🔗 <strong>Registration:</strong>{' '}
-                      <a
-                        href={company.registrationLink}
+                  {company.registrationLink && (
+                    <p>
+                      <strong>Registration:</strong>{' '}
+                      
+                      <a href={company.registrationLink}
                         target='_blank'
                         rel='noopener noreferrer'
                         style={{ color: '#9b59b6' }}
@@ -326,46 +338,56 @@ const HeadCompanies = () => {
                     className='btn-primary'
                     onClick={() => handleEdit(company)}
                   >
-                    ✏️ Edit
+                    Edit
                   </button>
                   <button
                     className='btn-success'
-                    onClick={() => handleUpdateStatus(company._id, 'active')}
+                    onClick={() =>
+                      handleUpdateStatus(company._id, 'active')
+                    }
                   >
-                    ✅ Set Active
+                    Set Active
                   </button>
                   <button
                     className='btn-warning'
-                    onClick={() => handleUpdateStatus(company._id, 'closed')}
+                    onClick={() =>
+                      handleUpdateStatus(company._id, 'closed')
+                    }
                   >
-                    🔒 Set Closed
+                    Set Closed
                   </button>
                   <button
                     className='btn-danger'
                     onClick={() => handleDelete(company._id)}
                   >
-                    🗑️ Delete
+                    Delete
                   </button>
                 </div>
               </div>
 
-              {/* Edit Form — appears below the card when editing */}
+              {/* Edit Form */}
               {editingCompany === company._id && (
                 <div style={{
                   background: '#f8f9fa',
                   border: '2px solid #3498db',
                   borderRadius: '8px',
                   padding: '20px',
-                  marginTop: '-10px',
                   marginBottom: '15px'
                 }}>
-                  <h4 style={{ color: '#2c3e50', marginBottom: '15px' }}>
-                    ✏️ Editing: {company.name}
+                  <h4 style={{
+                    color: '#2c3e50',
+                    marginBottom: '15px'
+                  }}>
+                    Editing: {company.name}
                   </h4>
+
+                  {editMsg && (
+                    <div className='error-msg'>{editMsg}</div>
+                  )}
 
                   <div className='form-row'>
                     <div className='form-group'>
-                      <label>Company Name</label>
+                      <label>Company Name *</label>
                       <input
                         type='text'
                         value={editForm.name}
@@ -375,7 +397,7 @@ const HeadCompanies = () => {
                       />
                     </div>
                     <div className='form-group'>
-                      <label>Job Role</label>
+                      <label>Job Role *</label>
                       <input
                         type='text'
                         value={editForm.role}
@@ -388,7 +410,7 @@ const HeadCompanies = () => {
 
                   <div className='form-row'>
                     <div className='form-group'>
-                      <label>Package</label>
+                      <label>Package *</label>
                       <input
                         type='text'
                         value={editForm.package}
@@ -405,13 +427,11 @@ const HeadCompanies = () => {
                         onChange={e => setEditForm({
                           ...editForm, minimumCgpa: e.target.value
                         })}
-                        min='0'
-                        max='10'
-                        step='0.1'
+                        min='0' max='10' step='0.1'
                       />
                     </div>
                     <div className='form-group'>
-                      <label>Last Date</label>
+                      <label>Last Date *</label>
                       <input
                         type='date'
                         value={editForm.lastDate}
@@ -448,7 +468,7 @@ const HeadCompanies = () => {
                       className='btn-success'
                       onClick={() => handleSaveEdit(company._id)}
                     >
-                      💾 Save Changes
+                      Save Changes
                     </button>
                     <button
                       className='btn-danger'

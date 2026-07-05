@@ -48,5 +48,22 @@ export const adminApi = {
       headers: getHeaders()
     })
     return res.json()
+  },
+
+  getUniversities: async () => {
+    const res = await fetch(`${API_URL}/admin/universities`, {
+      headers: getHeaders()
+    })
+    return res.json()
+  },
+
+  toggleUniversity: async (id, isActive) => {
+    const res = await fetch(`${API_URL}/admin/universities/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ isActive })
+    })
+    return res.json()
   }
 }
+
