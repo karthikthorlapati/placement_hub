@@ -1,66 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login - Placement Hub</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .role-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .role-card {
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 18px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+    }
+    .role-card:hover {
+      border-color: #3498db;
+      background: #eaf4ff;
+    }
+    .role-card.selected {
+      border-color: #3498db;
+      background: #eaf4ff;
+    }
+    .role-card .role-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .role-card .role-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #2c3e50;
+    }
+    .role-card .role-desc {
+      font-size: 11px;
+      color: #7f8c8d;
+      margin-top: 4px;
+    }
+    .step {
+      display: none;
+    }
+    .step.active {
+      display: block;
+    }
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .step-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ddd;
+    }
+    .step-dot.active {
+      background: #3498db;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      color: #3498db;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .back-btn:hover {
+      text-decoration: underline;
+    }
+    .selected-role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #eaf4ff;
+      border: 1px solid #3498db;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 13px;
+      color: #2980b9;
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+  </style>
 </head>
 <body>
-
-  <!-- Navigation -->
-  <nav>
-    <h1>🎓 Placement Hub</h1>
-    <a href="index.html">Home</a>
-  </nav>
-
-  <!-- Login Form -->
   <div class="auth-container">
-    <div class="auth-box">
-      <h2>Welcome Back!</h2>
-      <p>Login to your account</p>
+    <div class="auth-card">
+      <h1 class="auth-title">🎓 Placement Hub</h1>
 
-      <!-- Error Message -->
-      <div id="errorMsg" class="error-msg" style="display:none"></div>
+      <!-- Step Indicator -->
+      <div class="step-indicator">
+        <div class="step-dot active" id="dot1"></div>
+        <div style="width:30px;height:1px;background:#ddd;"></div>
+        <div class="step-dot" id="dot2"></div>
+      </div>
 
-      <!-- Login Form -->
-      <form id="loginForm">
+      <div id="errorMsg" class="error-msg" style="display:none;"></div>
 
-        <div class="form-group">
-          <label>Email Address</label>
-          <input
-            type="email"
-            id="email"
-            placeholder="Enter your email"
-            required
-          />
+      <!-- STEP 1: Role Selection -->
+      <div class="step active" id="step1">
+        <h2 style="text-align:center; margin-bottom:5px;">Who are you?</h2>
+        <p style="text-align:center; color:#7f8c8d; font-size:13px; margin-bottom:20px;">
+          Select your role to continue
+        </p>
+
+        <div class="role-grid">
+          <div class="role-card" onclick="selectRole('student', '🎓', 'Student')">
+            <div class="role-icon">🎓</div>
+            <div class="role-name">Student</div>
+            <div class="role-desc">View and apply to companies</div>
+          </div>
+          <div class="role-card" onclick="selectRole('coordinator', '👨‍💼', 'Coordinator')">
+            <div class="role-icon">👨‍💼</div>
+            <div class="role-name">Coordinator</div>
+            <div class="role-desc">Manage department placements</div>
+          </div>
+          <div class="role-card" onclick="selectRole('head', '🏛️', 'Placement Head')">
+            <div class="role-icon">🏛️</div>
+            <div class="role-name">Placement Head</div>
+            <div class="role-desc">Oversee all departments</div>
+          </div>
+          <div class="role-card" onclick="selectRole('admin', '⚙️', 'Admin')">
+            <div class="role-icon">⚙️</div>
+            <div class="role-name">Admin</div>
+            <div class="role-desc">Manage entire platform</div>
+          </div>
         </div>
+      </div>
 
-        <div class="form-group">
-          <label>Password</label>
-          <input
-            type="password"
-            id="password"
-            placeholder="Enter your password"
-            required
-          />
-        </div>
+      <!-- STEP 2: Credentials -->
+      <div class="step" id="step2">
+        <button class="back-btn" onclick="goBack()">
+          ← Back
+        </button>
 
-        <button type="submit" class="btn-full">Login</button>
+        <div id="selectedRoleBadge" class="selected-role-badge"></div>
 
-      </form>
+        <h2 style="margin-bottom:5px;">Welcome back!</h2>
+        <p style="color:#7f8c8d; font-size:13px; margin-bottom:20px;">
+          Enter your credentials to continue
+        </p>
 
-      <p class="bottom-text">
+        <form id="loginForm">
+          <div class="form-group">
+            <label>Email *</label>
+            <input
+              type="email"
+              id="email"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>Password *</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            class="btn-primary"
+            style="width:100%; margin-top:10px;"
+          >
+            Login
+          </button>
+        </form>
+      </div>
+
+      <p style="text-align:center; margin-top:20px; font-size:14px;">
         Don't have an account?
-        <a href="register.html">Register here</a>
+        <a href="/register.html">Register here</a>
       </p>
-
     </div>
   </div>
 
-  <!-- At bottom of file -->
-<script src="/js/main.js"></script>
-<script src="/js/login.js"></script>
-
+  <script src="js/main.js"></script>
+  <script src="js/login.js"></script>
 </body>
 </html>
