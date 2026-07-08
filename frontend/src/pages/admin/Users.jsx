@@ -5,9 +5,9 @@ import { adminApi } from '../../api'
 const Users = () => {
   const [users, setUsers] = useState([])
   const [filtered, setFiltered] = useState([])
-  const [activeFilter, setActiveFilter] = useState('all')
   const [loading, setLoading] = useState(true)
-  const [message, setMessage] = useState('')
+  const [deleteMsg, setDeleteMsg] = useState('')
+  const [activeRole, setActiveRole] = useState('all')
 
   useEffect(() => {
     loadUsers()
@@ -16,8 +16,9 @@ const Users = () => {
   const loadUsers = async () => {
     try {
       const data = await adminApi.getUsers()
-      setUsers(Array.isArray(data) ? data : [])
-      setFiltered(Array.isArray(data) ? data : [])
+      const list = Array.isArray(data) ? data : []
+      setUsers(list)
+      setFiltered(list)
     } catch (error) {
       console.log('Error:', error)
     } finally {
@@ -25,8 +26,19 @@ const Users = () => {
     }
   }
 
-  const handleFilter = (role) => {
-    setActiveFilter(role)
+  const handleSearch = (e) => {
+    const value = e.target.value.toLowerCase()
+    const result = users.filter(u =>
+      u.name.toLowerCase().includes(value) ||
+      u.email.toLowerCase().includes(value) ||
+      (u.department && u.department.toLowerCase().includes(value)) ||
+      (u.university?.name && u.university.name.toLowerCase().includes(value))
+    )
+    setFiltered(result)
+  }
+
+  const handleRoleFilter = (role) => {
+    setActiveRole(role)
     if (role === 'all') {
       setFiltered(users)
     } else {
@@ -34,18 +46,23 @@ const Users = () => {
     }
   }
 
-  const handleDelete = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return
+  const handleDelete = async (userId, userName) => {
+    if (!window.confirm(`Delete ${userName}?`)) return
     try {
-      const res = await adminApi.deleteUser(userId)
-      if (res.message === 'User deleted successfully!') {
-        setMessage('User deleted successfully! ✅')
-        loadUsers()
-        setTimeout(() => setMessage(''), 3000)
-      }
+      await adminApi.deleteUser(userId)
+      setDeleteMsg(`${userName} deleted successfully! ✅`)
+      loadUsers()
+      setTimeout(() => setDeleteMsg(''), 3000)
     } catch (error) {
       console.log('Error:', error)
     }
+  }
+
+  const roleBadgeColor = (role) => {
+    if (role === 'student') return { bg: '#eaf4ff', color: '#2980b9' }
+    if (role === 'coordinator') return { bg: '#eafaf1', color: '#27ae60' }
+    if (role === 'head') return { bg: '#fef9e7', color: '#f39c12' }
+    return { bg: '#f5eef8', color: '#8e44ad' }
   }
 
   if (loading) return (
@@ -58,31 +75,46 @@ const Users = () => {
     <Layout>
       <h2 className='page-title'>👥 All Users</h2>
 
-      {message && <div className='success-msg'>{message}</div>}
+      {deleteMsg && <div className='success-msg'>{deleteMsg}</div>}
 
-      {/* Filter Buttons */}
-      <div className='filter-buttons'>
-        <button
-          className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
-          onClick={() => handleFilter('all')}
-        >
-          All ({users.length})
-        </button>
-        <button
-          className={`filter-btn ${activeFilter === 'student' ? 'active' : ''}`}
-          onClick={() => handleFilter('student')}
-        >
-          Students ({users.filter(u => u.role === 'student').length})
-        </button>
-        <button
-          className={`filter-btn ${activeFilter === 'coordinator' ? 'active' : ''}`}
-          onClick={() => handleFilter('coordinator')}
-        >
-          Coordinators ({users.filter(u => u.role === 'coordinator').length})
-        </button>
+      {/* Role Filter Buttons */}
+      <div className='filter-buttons' style={{ marginBottom: '15px' }}>
+        {['all', 'student', 'coordinator', 'head'].map(role => (
+          <button
+            key={role}
+            className={`filter-btn ${activeRole === role ? 'active' : ''}`}
+            onClick={() => handleRoleFilter(role)}
+          >
+            {role.charAt(0).toUpperCase() + role.slice(1)}
+            {' '}
+            ({role === 'all'
+              ? users.length
+              : users.filter(u => u.role === role).length})
+          </button>
+        ))}
       </div>
 
-      {/* Users Table */}
+      {/* Search */}
+      <div className='search-bar' style={{ marginBottom: '20px' }}>
+        <input
+          type='text'
+          placeholder='Search by name, email, department, university...'
+          onChange={handleSearch}
+        />
+      </div>
+
+      {/* Stats */}
+      <div style={{
+        background: '#3498db',
+        color: 'white',
+        padding: '12px 20px',
+        borderRadius: '8px',
+        marginBottom: '20px',
+        display: 'inline-block'
+      }}>
+        <strong>Showing: {filtered.length} Users</strong>
+      </div>
+
       {filtered.length === 0 ? (
         <div className='empty-state'>
           <h3>No Users Found!</h3>
@@ -95,40 +127,73 @@ const Users = () => {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
+                <th>University</th>
                 <th>Department</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(user => (
-                <tr key={user._id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>
-                    <span className={`badge badge-${user.role}`}>
-                      {user.role}
-                    </span>
-                  </td>
-                  <td>{user.department || 'N/A'}</td>
-                  <td>
-                    {user.role !== 'admin' ? (
+              {filtered.map(user => {
+                const badge = roleBadgeColor(user.role)
+                return (
+                  <tr key={user._id}>
+                    <td>{user.name}</td>
+                    <td style={{ fontSize: '13px' }}>{user.email}</td>
+                    <td>
+                      <span style={{
+                        background: badge.bg,
+                        color: badge.color,
+                        padding: '3px 8px',
+                        borderRadius: '10px',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                      }}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td>
+                      {user.university ? (
+                        <span>
+                          <span style={{
+                            display: 'block',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#2c3e50'
+                          }}>
+                            {user.university.name}
+                          </span>
+                          <span style={{
+                            fontSize: '11px',
+                            color: '#3498db',
+                            background: '#eaf4ff',
+                            padding: '1px 6px',
+                            borderRadius: '8px'
+                          }}>
+                            {user.university.code}
+                          </span>
+                        </span>
+                      ) : (
+                        <span style={{ color: '#bdc3c7', fontSize: '12px' }}>
+                          N/A
+                        </span>
+                      )}
+                    </td>
+                    <td>{user.department || 'N/A'}</td>
+                    <td>
                       <button
                         className='btn-danger'
-                        onClick={() => handleDelete(user._id)}
+                        onClick={() => handleDelete(user._id, user.name)}
                       >
-                        🗑️ Delete
+                        Delete
                       </button>
-                    ) : (
-                      <span style={{ color: '#7f8c8d' }}>—</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
       )}
-
     </Layout>
   )
 }

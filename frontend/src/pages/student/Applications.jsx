@@ -1,19 +1,49 @@
 import { useState, useEffect } from 'react'
 import Layout from '../../components/Layout'
-import { headApi } from '../../api'
+import { studentApi } from '../../api'
+import { formatDate } from '../../utils/helpers'
 
-const Statistics = () => {
-  const [stats, setStats] = useState(null)
+const statusConfig = {
+  applied: {
+    label: 'Applied',
+    color: '#3498db',
+    bg: '#eaf4ff',
+    icon: '📋'
+  },
+  shortlisted: {
+    label: 'Shortlisted',
+    color: '#f39c12',
+    bg: '#fef9e7',
+    icon: '🟡'
+  },
+  selected: {
+    label: 'Selected',
+    color: '#2ecc71',
+    bg: '#eafaf1',
+    icon: '🎉'
+  },
+  rejected: {
+    label: 'Rejected',
+    color: '#e74c3c',
+    bg: '#fdedec',
+    icon: '❌'
+  }
+}
+
+const Applications = () => {
+  const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
+  const [expandedId, setExpandedId] = useState(null)
+  const [activeFilter, setActiveFilter] = useState('all')
 
   useEffect(() => {
-    loadStats()
+    loadApplications()
   }, [])
 
-  const loadStats = async () => {
+  const loadApplications = async () => {
     try {
-      const data = await headApi.getPlacementStats()
-      setStats(data)
+      const data = await studentApi.getMyApplications()
+      setApplications(Array.isArray(data) ? data : [])
     } catch (error) {
       console.log('Error:', error)
     } finally {
@@ -21,180 +51,296 @@ const Statistics = () => {
     }
   }
 
+  const toggleExpand = (id) => {
+    setExpandedId(expandedId === id ? null : id)
+  }
+
+  const getFiltered = () => {
+    if (activeFilter === 'all') return applications
+    return applications.filter(app => app.status === activeFilter)
+  }
+
+  const statusCount = (status) =>
+    status === 'all'
+      ? applications.length
+      : applications.filter(a => a.status === status).length
+
   if (loading) return (
     <Layout>
       <div className='loading'>Loading...</div>
     </Layout>
   )
 
+  const filtered = getFiltered()
+
   return (
     <Layout>
-      <h2 className='page-title'>📊 Placement Statistics</h2>
+      <h2 className='page-title'>📋 My Applications</h2>
 
-      {/* Main Stats */}
-      <div className='stats-container'>
-        <div style={{
-          background: 'linear-gradient(135deg, #3498db, #2980b9)',
-          color: 'white', padding: '20px', borderRadius: '12px',
-          flex: 1, textAlign: 'center'
-        }}>
-          <h2 style={{ margin: 0, fontSize: '32px' }}>
-            {stats?.totalStudents || 0}
-          </h2>
-          <p style={{ margin: 0, opacity: 0.9 }}>Total Students</p>
-        </div>
-
-        <div style={{
-          background: 'linear-gradient(135deg, #2ecc71, #27ae60)',
-          color: 'white', padding: '20px', borderRadius: '12px',
-          flex: 1, textAlign: 'center'
-        }}>
-          <h2 style={{ margin: 0, fontSize: '32px' }}>
-            {stats?.totalPlaced || 0}
-          </h2>
-          <p style={{ margin: 0, opacity: 0.9 }}>Students Placed</p>
-        </div>
-
-        <div style={{
-          background: 'linear-gradient(135deg, #9b59b6, #8e44ad)',
-          color: 'white', padding: '20px', borderRadius: '12px',
-          flex: 1, textAlign: 'center'
-        }}>
-          <h2 style={{ margin: 0, fontSize: '32px' }}>
-            {stats?.overallPlacementPercentage || 0}%
-          </h2>
-          <p style={{ margin: 0, opacity: 0.9 }}>Placement Rate</p>
-        </div>
-      </div>
-
-      {/* Package Stats */}
-      <div className='stats-container'>
-        <div style={{
-          background: 'white', border: '2px solid #f39c12',
-          padding: '20px', borderRadius: '12px',
-          flex: 1, textAlign: 'center'
-        }}>
-          <h2 style={{ margin: 0, color: '#f39c12', fontSize: '28px' }}>
-            ₹{stats?.averagePackage || 0} LPA
-          </h2>
-          <p style={{ margin: 0, color: '#7f8c8d' }}>Average Package</p>
-        </div>
-
-        <div style={{
-          background: 'white', border: '2px solid #e74c3c',
-          padding: '20px', borderRadius: '12px',
-          flex: 1, textAlign: 'center'
-        }}>
-          <h2 style={{ margin: 0, color: '#e74c3c', fontSize: '28px' }}>
-            ₹{stats?.highestPackage || 0} LPA
-          </h2>
-          <p style={{ margin: 0, color: '#7f8c8d' }}>Highest Package</p>
-        </div>
-      </div>
-
-      {/* Top Companies */}
-      <div className='section'>
-        <h3>🏆 Top Recruiting Companies</h3>
-        {stats?.topCompanies && stats.topCompanies.length > 0 ? (
-          stats.topCompanies.map((company, index) => (
+      {/* Summary Stats Row */}
+      <div style={{
+        display: 'flex',
+        gap: '12px',
+        marginBottom: '20px',
+        flexWrap: 'wrap'
+      }}>
+        {['applied', 'shortlisted', 'selected', 'rejected'].map(status => {
+          const cfg = statusConfig[status]
+          const count = statusCount(status)
+          return (
             <div
-              key={index}
+              key={status}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '15px',
-                padding: '15px',
-                background: index === 0 ? '#fff3cd' : '#f8f9fa',
-                borderRadius: '8px',
-                marginBottom: '10px'
+                background: cfg.bg,
+                border: `1px solid ${cfg.color}`,
+                borderRadius: '10px',
+                padding: '12px 18px',
+                textAlign: 'center',
+                minWidth: '100px',
+                flex: 1
               }}
             >
-              <span style={{
-                fontSize: '20px',
+              <p style={{
+                fontSize: '22px',
                 fontWeight: 'bold',
-                color: index === 0 ? '#f39c12' : '#7f8c8d',
-                minWidth: '30px'
+                color: cfg.color,
+                margin: 0
               }}>
-                {index === 0 ? '🥇' : index === 1 ? '🥈' :
-                  index === 2 ? '🥉' : `#${index + 1}`}
-              </span>
-              <div style={{ flex: 1 }}>
-                <p style={{ fontWeight: 'bold', color: '#2c3e50' }}>
-                  {company.name}
+                {count}
+              </p>
+              <p style={{
+                fontSize: '12px',
+                color: cfg.color,
+                margin: 0
+              }}>
+                {cfg.label}
+              </p>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Filter Buttons */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        marginBottom: '20px',
+        flexWrap: 'wrap'
+      }}>
+        {['all', 'applied', 'shortlisted', 'selected', 'rejected'].map(
+          status => (
+            <button
+              key={status}
+              onClick={() => setActiveFilter(status)}
+              style={{
+                padding: '7px 14px',
+                borderRadius: '20px',
+                border: activeFilter === status
+                  ? '2px solid #3498db'
+                  : '1px solid #ddd',
+                background: activeFilter === status ? '#3498db' : 'white',
+                color: activeFilter === status ? 'white' : '#555',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: activeFilter === status ? 'bold' : 'normal',
+                transition: 'all 0.2s'
+              }}
+            >
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+              {' '}({statusCount(status)})
+            </button>
+          )
+        )}
+      </div>
+
+      {/* Applications List */}
+      {filtered.length === 0 ? (
+        <div className='empty-state'>
+          <h3>
+            {activeFilter === 'all'
+              ? 'No Applications Yet!'
+              : `No ${activeFilter} applications`}
+          </h3>
+          {activeFilter === 'all' && (
+            <p>Go to Companies page and apply for your first job!</p>
+          )}
+        </div>
+      ) : (
+        filtered.map(app => {
+          const config = statusConfig[app.status] || statusConfig.applied
+          const isExpanded = expandedId === app._id
+
+          return (
+            <div
+              key={app._id}
+              className='company-card'
+              style={{
+                borderLeft: `4px solid ${config.color}`
+              }}
+            >
+              {/* Card Header */}
+              <div className='company-card-header'>
+                <h3>{app.company?.name || 'N/A'}</h3>
+                <span style={{
+                  background: config.bg,
+                  color: config.color,
+                  padding: '5px 12px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: 'bold',
+                  border: `1px solid ${config.color}`
+                }}>
+                  {config.icon} {config.label}
+                </span>
+              </div>
+
+              {/* Card Details */}
+              <div className='company-card-details'>
+                <p>
+                  <strong>Role:</strong> {app.company?.role || 'N/A'}
+                </p>
+                <p>
+                  <strong>Package:</strong> {app.company?.package || 'N/A'}
+                </p>
+                <p>
+                  <strong>Applied On:</strong> {formatDate(app.appliedAt)}
                 </p>
               </div>
-              <span style={{
-                background: '#3498db',
-                color: 'white',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '13px',
-                fontWeight: 'bold'
-              }}>
-                {company.count} students
-              </span>
-            </div>
-          ))
-        ) : (
-          <p style={{ color: '#7f8c8d' }}>No placements recorded yet!</p>
-        )}
-      </div>
 
-      {/* Department Wise Placement */}
-      <div className='section'>
-        <h3>🏫 Department Wise Placement</h3>
-        {stats?.deptWisePlacement && stats.deptWisePlacement.length > 0 ? (
-          <table className='data-table'>
-            <thead>
-              <tr>
-                <th>Department</th>
-                <th>Total Students</th>
-                <th>Placed</th>
-                <th>Placement %</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.deptWisePlacement.map((dept, index) => (
-                <tr key={index}>
-                  <td>{dept.department}</td>
-                  <td>{dept.totalStudents}</td>
-                  <td>{dept.placedStudents}</td>
-                  <td>
+              {/* Timeline Toggle */}
+              <button
+                onClick={() => toggleExpand(app._id)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#3498db',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: 'bold',
+                  padding: '5px 0',
+                  marginTop: '10px'
+                }}
+              >
+                {isExpanded ? '▲ Hide Timeline' : '▼ View Timeline'}
+              </button>
+
+              {/* Timeline Section */}
+              {isExpanded && (
+                <div style={{
+                  marginTop: '15px',
+                  padding: '20px',
+                  background: '#f8f9fa',
+                  borderRadius: '8px'
+                }}>
+                  <h4 style={{
+                    marginBottom: '20px',
+                    color: '#2c3e50',
+                    fontSize: '14px'
+                  }}>
+                    Application Journey
+                  </h4>
+
+                  {app.timeline && app.timeline.length > 0 ? (
                     <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px'
+                      position: 'relative',
+                      paddingLeft: '30px'
                     }}>
-                      <div style={{
-                        width: '100px',
-                        background: '#f0f0f0',
-                        borderRadius: '10px',
-                        height: '12px',
-                        overflow: 'hidden'
-                      }}>
-                        <div style={{
-                          width: `${dept.percentage}%`,
-                          background: dept.percentage >= 50 ?
-                            '#2ecc71' : '#f39c12',
-                          height: '100%'
-                        }} />
-                      </div>
-                      <span style={{ fontWeight: 'bold' }}>
-                        {dept.percentage}%
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p style={{ color: '#7f8c8d' }}>No data available!</p>
-        )}
-      </div>
+                      {app.timeline.map((entry, index) => {
+                        const cfg = statusConfig[entry.status] ||
+                          statusConfig.applied
+                        const isLast = index === app.timeline.length - 1
 
+                        return (
+                          <div
+                            key={index}
+                            style={{
+                              position: 'relative',
+                              paddingBottom: isLast ? '0' : '25px'
+                            }}
+                          >
+                            {/* Connecting Line */}
+                            {!isLast && (
+                              <div style={{
+                                position: 'absolute',
+                                left: '-22px',
+                                top: '20px',
+                                width: '2px',
+                                height: '100%',
+                                background: '#ddd'
+                              }} />
+                            )}
+
+                            {/* Status Dot */}
+                            <div style={{
+                              position: 'absolute',
+                              left: '-30px',
+                              top: '2px',
+                              width: '16px',
+                              height: '16px',
+                              borderRadius: '50%',
+                              background: cfg.color,
+                              border: '3px solid white',
+                              boxShadow: `0 0 0 2px ${cfg.color}`
+                            }} />
+
+                            <p style={{
+                              fontWeight: 'bold',
+                              color: cfg.color,
+                              marginBottom: '3px',
+                              fontSize: '14px'
+                            }}>
+                              {cfg.icon} {cfg.label}
+                            </p>
+                            <p style={{
+                              color: '#7f8c8d',
+                              fontSize: '12px',
+                              margin: 0
+                            }}>
+                              {entry.date
+                                ? new Date(entry.date).toLocaleString()
+                                : 'Date not available'}
+                            </p>
+                          </div>
+                        )
+                      })}
+
+                      {/* Pending Next Step */}
+                      {app.status !== 'rejected' &&
+                       app.status !== 'selected' && (
+                        <div style={{ paddingTop: '5px' }}>
+                          <div style={{
+                            position: 'absolute',
+                            left: '0px',
+                            width: '16px',
+                            height: '16px',
+                            borderRadius: '50%',
+                            background: '#ddd',
+                            border: '3px solid white',
+                            boxShadow: '0 0 0 2px #ddd'
+                          }} />
+                          <p style={{
+                            fontWeight: 'bold',
+                            color: '#bbb',
+                            marginLeft: '0'
+                          }}>
+                            ⏳ Next step pending...
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p style={{ color: '#7f8c8d', fontSize: '13px' }}>
+                      Timeline data not available
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })
+      )}
     </Layout>
   )
 }
 
-export default Statistics
+export default Applications
